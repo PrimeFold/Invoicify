@@ -74,3 +74,44 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+model Client {
+  id            String    @id @default(cuid())
+  name          String
+  email         String
+  hourlyRate    Float
+  timeLogs      TimeLog[]
+  invoices      Invoice[]
+}
+
+model TimeLog {
+  id              String   @id @default(cuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+  description     String
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int      @default(0)
+  status          String   @default("UNBILLED") // UNBILLED | INVOICED
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique // e.g., "INV-2026-001"
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id])
+  totalAmount   Float
+  status        String        @default("UNPAID") // UNPAID | PAID
+  createdAt     DateTime      @default(now())
+  items         InvoiceItem[]
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  description String
+  hours       Float
+  rate        Float
+  lineTotal   Float
+}
