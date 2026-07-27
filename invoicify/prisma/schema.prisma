@@ -25,7 +25,7 @@ model User {
 
   invoices Invoice[]
   clients Client[]
-  timelogo TimeLog[]
+  timelog TimeLog[]
 
 
   @@unique([email])
