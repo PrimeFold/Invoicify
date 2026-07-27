@@ -2,6 +2,7 @@ import { PrismaClient } from '@/lib/generated/prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg'
 import {betterAuth} from 'better-auth/minimal'
 import { prismaAdapter } from "better-auth/adapters/prisma"
+
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
