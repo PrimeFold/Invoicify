@@ -1,3 +1,4 @@
+
 export type PaginatedResult<T> = {
   items: T[];
   page: number;

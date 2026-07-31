@@ -1,3 +1,4 @@
+"use server"
 import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
 import type { PaginatedResult } from "@/types/pagination";
@@ -62,3 +63,19 @@ export const getTimeLogs = async (page : number,pageSize = DEFAULT_PAGE_SIZE,): 
     }
 
 };
+
+
+export const deleteTimeLog = async(id:string)=>{
+    const user = await requireUser();
+    try {
+        await prisma.timeLog.delete({
+            where: {
+                id,
+                userId: user.id
+            }
+        })
+    } catch (error) {
+        throw new Error((error as Error).message);
+    }
+}
+
