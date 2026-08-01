@@ -9,6 +9,13 @@ const adapter = new PrismaPg({
 
 export const prisma = new PrismaClient({ adapter });
 export const auth = betterAuth({
+    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    trustedOrigins: [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:3001",
+      "http://127.0.0.1:3001",
+    ],
     database: prismaAdapter(prisma, {
         provider: "postgresql", 
     }),
@@ -21,6 +28,4 @@ export const auth = betterAuth({
     session:{
       expiresIn:60*60*24*5
     },
-    
-    
 });

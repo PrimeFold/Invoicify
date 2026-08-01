@@ -199,8 +199,9 @@ export function LandingPage() {
             Invoicify brings time, clients, and invoices together in one calm, straightforward workspace.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <CtaLink href="#how-it-works">See how it works <ArrowRight className="size-4" aria-hidden="true" /></CtaLink>
-            <CtaLink href="#features" variant="secondary">Explore features</CtaLink>
+            <CtaLink href="/register">Sign up <ArrowRight className="size-4" aria-hidden="true" /></CtaLink>
+            <CtaLink href="/login" variant="secondary">Sign in</CtaLink>
+            <CtaLink href="#how-it-works" variant="secondary">See how it works</CtaLink>
           </div>
           <InvoicePreview />
         </section>

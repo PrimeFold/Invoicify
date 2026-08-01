@@ -5,7 +5,6 @@ import type { PaginatedResult } from "@/types/pagination";
 import type { TimeLog } from "@/types/timeLog";
 
 const DEFAULT_PAGE_SIZE = 10;
-const MAX_PAGE_SIZE = 100;
 
 export const createTimeLog = async(data:TimeLog)=>{
     try {
@@ -34,7 +33,7 @@ export const createTimeLog = async(data:TimeLog)=>{
     }
 }
 
-export const getTimeLogs = async (page : number,pageSize = DEFAULT_PAGE_SIZE,): Promise<PaginatedResult<TimeLog>> => {
+export const getTimeLogs = async (page : number): Promise<PaginatedResult<TimeLog>> => {
     const user = await requireUser();
 
     const currentPage = Math.max(1 , Number(page) || 1);
