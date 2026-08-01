@@ -2,6 +2,8 @@
 
 import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
+import { getRedis } from "@/lib/redis";
+import { TimeLog } from "@/types/timeLog";
 
 type InvoiceLine = {
   timeLogId: string;
@@ -22,6 +24,16 @@ const createInvoiceNumber = () => `INV-${Date.now()}-${crypto.randomUUID().slice
 // `timeLogIds` is optional: may omit it to invoice every unbilled log for the client.
 export const getAllUnBilledLogsById = async (clientId: string,timeLogIds?: string[]) => {
   const user = await requireUser();
+  const redis = getRedis();
+  if(!timeLogIds){
+    throw new Error("Time logs not detected!")
+  }
+  const key = `unbilled-logs:${user.id}:${clientId}:${[...timeLogIds].sort().join(",")}`
+  const cache = await redis.get(key);
+
+  if(cache){
+    return JSON.parse(cache);
+  }
 
   const logs = await prisma.timeLog.findMany({
     where: {
@@ -64,10 +76,11 @@ export const calculateTotalHoursAndLines = async (
     throw new Error("Client not found.");
   }
 
+
   const logs = await getAllUnBilledLogsById(clientId, timeLogIds);
   const rate = client.hourlyRate;
 
-  const items: InvoiceLine[] = logs.map((log) => {
+  const items: InvoiceLine[] = logs.map((log:TimeLog) => {
     const hours = log.durationMinutes / 60;
     const lineTotal = roundCurrency(hours * rate);
 
@@ -93,6 +106,16 @@ export const calculateTotalHoursAndLines = async (
 
 export const getInvoiceById = async (invoiceId: string) => {
   const user = await requireUser();
+  const redis= getRedis();
+  const key = `invoice:${invoiceId}`
+  const cachedInvoice = await redis.get(key);
+
+  if(cachedInvoice){
+    const invoice = JSON.parse(cachedInvoice);
+    // normalize date fields (Redis stores strings)
+    if (invoice.createdAt) invoice.createdAt = new Date(invoice.createdAt);
+    return invoice;
+  }
 
   const invoice = await prisma.invoice.findFirst({
     where: {
@@ -105,9 +128,14 @@ export const getInvoiceById = async (invoiceId: string) => {
     },
   });
 
+  
   if (!invoice) {
     throw new Error("Invoice not found.");
   }
+
+  const cache = JSON.stringify(invoice);
+  // set with expiry (120s)
+  await redis.set(key, cache, "EX", 120);
 
   return invoice;
 };
@@ -116,6 +144,7 @@ export const generateInvoice = async (
   clientId: string,
   timeLogIds: string[],
 ) => {
+  const redis = getRedis();
 
   //Making sure timelog isn't empty..
   if (timeLogIds.length === 0) {
@@ -123,10 +152,30 @@ export const generateInvoice = async (
   }
 
   const user = await requireUser();
+
+  // Use a deterministic generation cache key so repeated "Generate" clicks
+  // with the same timeLogIds won't create duplicate invoices or hit the DB.
+  const genKey = `invoice-gen:${user.id}:${clientId}:${[...timeLogIds].sort().join(",")}`;
+  try {
+    const cached = await redis.get(genKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.invoice) {
+        // restore createdAt
+        if (parsed.invoice.createdAt) parsed.invoice.createdAt = new Date(parsed.invoice.createdAt);
+        return parsed;
+      }
+    }
+  } catch (err) {
+    // non-fatal: continue to generate if Redis read fails
+    // eslint-disable-next-line no-console
+    console.warn("Redis read failed for generation key:", err);
+  }
+
   const { items, totalHours, totalAmount } = await calculateTotalHoursAndLines(clientId, timeLogIds);
 
-  //Making sure transactino happens per invoice mapping the items data to each record..
-  return prisma.$transaction(async (tx) => {
+  //Making sure transaction happens per invoice mapping the items data to each record..
+  const result = await prisma.$transaction(async (tx) => {
     const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
@@ -164,4 +213,22 @@ export const generateInvoice = async (
 
     return { invoice, totalHours };
   });
+
+  // cache the created invoice for quick subsequent reads
+  try {
+    const key = `invoice:${result.invoice.id}`;
+    await redis.set(key, JSON.stringify(result.invoice), "EX", 120);
+    // also cache the generation result so repeated generate requests return quickly
+    try {
+      await redis.set(genKey, JSON.stringify(result), "EX", 120);
+    } catch (err) {
+      // ignore generation cache failures
+    }
+  } catch (err) {
+    // non-fatal: cache failure should not block invoice creation
+    // eslint-disable-next-line no-console
+    console.warn("Failed to cache invoice:", err);
+  }
+
+  return result;
 };

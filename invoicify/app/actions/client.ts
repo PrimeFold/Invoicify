@@ -8,6 +8,7 @@ import type { Client } from "@/types/client";
 import type { PaginatedResult } from "@/types/pagination";
 import { clientSchema } from "../validations/zod";
 import { revalidatePath } from "next/cache";
+import { getRedis } from "@/lib/redis";
 
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
@@ -17,6 +18,14 @@ export const getClients = async (
   pageSize = DEFAULT_PAGE_SIZE,
 ): Promise<PaginatedResult<Client>> => {
   const user = await requireUser();
+  const redis = getRedis();
+  const key = `clients:${user.id}:${page}:${pageSize}`
+
+  const cachedClients = await redis.get(key);
+
+  if(cachedClients){
+    return JSON.parse(cachedClients);
+  }
 
   const currentPage = Math.max(1, Number(page) || 1);
   const take = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(pageSize) || DEFAULT_PAGE_SIZE));
@@ -35,6 +44,25 @@ export const getClients = async (
 
   const totalPages = Math.ceil(total / take);
 
+
+  const returnValue = {
+    items,
+    page: currentPage,
+    pageSize: take,
+    total,
+    totalPages,
+    hasNextPage: skip + items.length < total,
+    hasPreviousPage: currentPage > 1,
+  } as PaginatedResult<Client>;
+
+  try {
+    await redis.set(key, JSON.stringify(returnValue), "EX", 60);
+  } catch (err) {
+    // non-fatal
+    // eslint-disable-next-line no-console
+    console.warn("Failed to cache clients:", err);
+  }
+
   return {
     items,
     page: currentPage,
@@ -45,6 +73,8 @@ export const getClients = async (
     hasPreviousPage: currentPage > 1,
   };
 };
+
+
 
 export const getClientInformation = async (clientId: string) => {
   const user = await requireUser();
@@ -129,7 +159,7 @@ export const updateClientName = async(clientId:string,name:string)=>{
     })
     revalidatePath("/clients")
     revalidatePath("/clients/[id]")
-
+    
   } catch (error) {
     throw new Error((error as Error).message)
   }
@@ -148,6 +178,7 @@ export const deleteClient = async(clientId:string)=>{
     revalidatePath("/clients")
     revalidatePath("/clients/[id]")
 
+    
   } catch (error) {
     
   }
