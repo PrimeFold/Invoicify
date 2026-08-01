@@ -1,24 +1,34 @@
 export const runtime = "nodejs";
 import { buildInvoicePdfBuffer } from "@/app/actions/pdfkit";
 import { getInvoiceById } from "@/app/actions/invoices";
-
+import { getPdfCache, setPdfCache } from "@/lib/redis";
+import { pdfResponse } from "@/utils/pdf-response";
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } },
 ) {
-  
   try {
     const invoice = await getInvoiceById(params.id);
-    const pdfBuffer = await buildInvoicePdfBuffer(invoice);
 
-    return new Response(new Uint8Array(pdfBuffer), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename=invoice-${invoice.invoiceNumber}.pdf`,
-      },
-    });
+    // Check Redis cache for the rendered PDF
+    const cached = await getPdfCache(params.id);
+    if (cached) {
+      return new Response(new Uint8Array(cached), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `inline; filename=invoice-${invoice.invoiceNumber}.pdf`,
+        },
+      });
+    }
+
+    // Not cached -> generate, cache and return
+    const pdfBuffer = await buildInvoicePdfBuffer(invoice);
+    // cache for 60 seconds
+    await setPdfCache(params.id, pdfBuffer);
+
+    return pdfResponse({ pdfBuffer, invoice });
   } catch (error) {
     return new Response(
       `

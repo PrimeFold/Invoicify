@@ -10,7 +10,7 @@ const formatCurrency = (amount: number) =>
   }).format(amount);
 
 
-type InvoiceWithClientAndItems = Prisma.InvoiceGetPayload<{
+export type InvoiceWithClientAndItems = Prisma.InvoiceGetPayload<{
   include: { client: true; items: true };
 }>;
 
@@ -52,6 +52,7 @@ export const buildInvoicePdfBuffer = async (invoice: InvoiceWithClientAndItems) 
     doc.moveDown(0.5);
 
     doc.font("Helvetica");
+
     invoice.items.forEach((item) => {
       const y = doc.y;
       doc.text(item.description, 40, y, { width: 240 });
