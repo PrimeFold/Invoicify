@@ -6,13 +6,14 @@ import { pdfResponse } from "@/utils/pdf-response";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const invoice = await getInvoiceById(params.id);
+    const { id } = await params;
+    const invoice = await getInvoiceById(id);
 
     // Check Redis cache for the rendered PDF
-    const cached = await getPdfCache(params.id);
+    const cached = await getPdfCache(id);
     if (cached) {
       return new Response(new Uint8Array(cached), {
         status: 200,
@@ -26,7 +27,7 @@ export async function GET(
     // Not cached -> generate, cache and return
     const pdfBuffer = await buildInvoicePdfBuffer(invoice);
     // cache for 60 seconds
-    await setPdfCache(params.id, pdfBuffer);
+    await setPdfCache(id, pdfBuffer);
 
     return pdfResponse({ pdfBuffer, invoice });
   } catch (error) {

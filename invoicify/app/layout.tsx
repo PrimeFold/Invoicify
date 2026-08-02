@@ -14,9 +14,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="h-full font-sans antialiased"
+      className="h-full font-sans antialiased dark"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="bg-canvas text-txt-primary font-sans antialiased min-h-screen flex flex-col">{children}</body>
     </html>
   );
 }

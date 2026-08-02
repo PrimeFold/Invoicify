@@ -232,3 +232,32 @@ export const generateInvoice = async (
 
   return result;
 };
+
+export const deleteInvoice = async(
+  clientId:string,
+  timeLogIds:string[],
+)=>{
+  const user = await requireUser();
+
+  try {
+    const result = await prisma.$transaction(async(tx)=>{
+      await tx.timeLog.updateMany({
+        where:{
+          clientId,
+          userId:user.id,
+           ...(timeLogIds ? { id: { in: timeLogIds } } : {}),
+           status:"INVOICED"
+        },
+        data:{
+          status:"UNBILLED"
+        }
+      })
+    })
+
+    return result;
+  } catch (error) {
+    throw new Error((error as Error).message)
+  }
+
+}
+

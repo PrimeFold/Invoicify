@@ -11,7 +11,6 @@ import { revalidatePath } from "next/cache";
 import { getRedis } from "@/lib/redis";
 
 const DEFAULT_PAGE_SIZE = 10;
-const MAX_PAGE_SIZE = 100;
 
 export const getClients = async (
   page = 1,
@@ -28,7 +27,7 @@ export const getClients = async (
   }
 
   const currentPage = Math.max(1, Number(page) || 1);
-  const take = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(pageSize) || DEFAULT_PAGE_SIZE));
+  const take = Math.max(1, Number(pageSize) || DEFAULT_PAGE_SIZE);
   const skip = (currentPage - 1) * take;
   const where = { userId: user.id };
 
