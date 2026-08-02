@@ -1,10 +1,14 @@
 import { Brand } from "./landing/landing-page";
-
+import { requireUser } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { SiGithub } from "react-icons/si";
 
-export default function MarketLayout({children}:{children:ReactNode}){
+export default async function MarketLayout({children}:{children:ReactNode}){
+    const user = await requireUser().catch(() => null);
+    if (user) redirect("/dashboard");
+
     return(
         <div className="min-h-screen flex flex-col bg-canvas text-txt-primary">
             {/*Shared Header*/}

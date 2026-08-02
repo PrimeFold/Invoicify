@@ -1,13 +1,8 @@
-import { requireUser } from "@/lib/auth/session";
 import { ReceiptText } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
-export default async function AuthLayout({ children }: { children: ReactNode }) {
-  const user = await requireUser();
-  if (user) redirect("/dashboard");
-
+export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-canvas px-4">
       <div className="mb-6 flex flex-col items-center gap-2">
