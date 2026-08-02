@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/auth/auth-card";
+import { toast } from "@/components/ui/toast";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -34,7 +35,16 @@ export function AuthForm({ mode }: AuthFormProps) {
         : await authClient.signUp.email({ name, email, password });
 
       if (result.error) {
-        setError(result.error.message || "Authentication failed.");
+        const message = result.error.message || "Authentication failed.";
+        const friendlyMessage = message.toLowerCase().includes("user not found")
+          ? "User not found"
+          : message;
+
+        setError(friendlyMessage);
+        toast.error({
+          title: "Authentication failed",
+          description: friendlyMessage,
+        });
         return;
       }
 
@@ -42,10 +52,19 @@ export function AuthForm({ mode }: AuthFormProps) {
       if (isLogin) {
         router.push("/dashboard");
       } else {
+        toast.success({
+          title:"Sucess",
+          description:"Account created Successfuly!"
+        })
         router.push("/login");
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      const fallbackMessage = "Something went wrong. Please try again.";
+      setError(fallbackMessage);
+      toast.error({
+        title: "Authentication failed",
+        description: fallbackMessage,
+      });
     } finally {
       setIsSubmitting(false);
     }
