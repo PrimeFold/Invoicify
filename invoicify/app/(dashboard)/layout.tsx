@@ -22,11 +22,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       </header>
       <div className="flex flex-1 mx-25">
         <Sidebar/>
-        <main className="py-8 bg-red-200">
+        <main className="min-w-0 flex-1 bg-canvas px-6 py-8">
           {children}
         </main>
         </div>
     </div>
   );
 }
-

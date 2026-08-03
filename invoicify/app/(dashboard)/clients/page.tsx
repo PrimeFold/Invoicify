@@ -1,8 +1,49 @@
-export default function ClientsPage() {
+import { ClientsMetrics, type ClientMetrics } from "@/components/clients/clients-metrics";
+import { ClientsPageHeader } from "@/components/clients/clients-page-header";
+import { ClientsPagination } from "@/components/clients/clients-pagination";
+import { ClientsTable, type ClientTableRow } from "@/components/clients/clients-table";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { getClients } from "@/app/actions/client";
+
+type ClientsPageProps = {
+  searchParams: Promise<{ page?: string | string[] }>;
+};
+
+export default async function ClientsPage({ searchParams }: ClientsPageProps) {
+  const params = await searchParams;
+  const requestedPage = Number(Array.isArray(params.page) ? params.page[0] : params.page) || 1;
+  let clientResult = await getClients(requestedPage);
+
+  if (clientResult.totalPages > 0 && clientResult.page > clientResult.totalPages) {
+    clientResult = await getClients(clientResult.totalPages);
+  }
+
+  const clients: ClientTableRow[] = clientResult.items.map((client) => ({
+    id: client.id!,
+    name: client.name,
+    email: client.email,
+    hourlyRate: Number(client.hourlyRate),
+  }));
+
+  const metrics: ClientMetrics = {
+    activeClients: clientResult.total,
+    averageHourlyRate:
+      clients.length === 0 ? 0 : clients.reduce((total, client) => total + client.hourlyRate, 0) / clients.length,
+  };
+
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-semibold">Clients</h1>
-      <p className="mt-4 text-sm text-muted-foreground">Client directory and billing info will appear here.</p>
-    </main>
+    <TooltipProvider>
+      <div className="space-y-6">
+        <ClientsPageHeader clientCount={clientResult.total} />
+        <ClientsMetrics metrics={metrics} />
+        <ClientsTable clients={clients} />
+        <ClientsPagination
+          currentPage={clientResult.page}
+          totalPages={clientResult.totalPages}
+          hasPreviousPage={clientResult.hasPreviousPage}
+          hasNextPage={clientResult.hasNextPage}
+        />
+      </div>
+    </TooltipProvider>
   );
 }

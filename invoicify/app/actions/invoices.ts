@@ -4,6 +4,7 @@ import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
 import { getRedis } from "@/lib/redis";
 import { TimeLog } from "@/types/timeLog";
+import { invalidateDashboardCache } from "./dashboard";
 
 type InvoiceLine = {
   timeLogId: string;
@@ -214,6 +215,8 @@ export const generateInvoice = async (
     return { invoice, totalHours };
   });
 
+  await invalidateDashboardCache(user.id);
+
   // cache the created invoice for quick subsequent reads
   try {
     const key = `invoice:${result.invoice.id}`;
@@ -254,10 +257,10 @@ export const deleteInvoice = async(
       })
     })
 
+    await invalidateDashboardCache(user.id);
     return result;
   } catch (error) {
     throw new Error((error as Error).message)
   }
 
 }
-

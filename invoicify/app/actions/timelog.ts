@@ -3,18 +3,29 @@ import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
 import type { PaginatedResult } from "@/types/pagination";
 import type { TimeLog } from "@/types/timeLog";
+import { invalidateDashboardCache } from "./dashboard";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-export const createTimeLog = async(data:TimeLog)=>{
+type CreateTimeLogInput = {
+    clientId: string;
+    description: string;
+    startTime: Date;
+    endTime: Date;
+    durationMinutes: number;
+    status: "UNBILLED" | "INVOICED";
+};
+
+export const createTimeLog = async(data: CreateTimeLogInput) => {
     try {
+        const user = await requireUser();
         const newTimeLog = await prisma.timeLog.create({
             data:{
-                userId:data.userId,
+                userId:user.id,
                 clientId:data.clientId,
                 description:data.description,
                 startTime:data.startTime,
-                endTime:data.endTime,
+                endTime: data.endTime,
                 durationMinutes:data.durationMinutes,
                 status:data.status
             },
@@ -28,6 +39,8 @@ export const createTimeLog = async(data:TimeLog)=>{
                 status:true
             }
         })
+        await invalidateDashboardCache(user.id);
+        return newTimeLog;
     } catch (error) {
         throw new Error((error as Error).message)
     }
@@ -57,7 +70,7 @@ export const getTimeLogs = async (page : number): Promise<PaginatedResult<TimeLo
         pageSize:DEFAULT_PAGE_SIZE,
         total,
         totalPages:Math.ceil(total/DEFAULT_PAGE_SIZE),
-        hasNextPage:currentPage < items.length,
+        hasNextPage: skip + items.length < total,
         hasPreviousPage:currentPage > 1
     }
 
@@ -73,8 +86,8 @@ export const deleteTimeLog = async(id:string)=>{
                 userId: user.id
             }
         })
+        await invalidateDashboardCache(user.id);
     } catch (error) {
         throw new Error((error as Error).message);
     }
 }
-

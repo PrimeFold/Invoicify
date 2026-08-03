@@ -9,6 +9,8 @@ import type { PaginatedResult } from "@/types/pagination";
 import { clientSchema } from "../validations/zod";
 import { revalidatePath } from "next/cache";
 import { getRedis } from "@/lib/redis";
+import { toast } from "@/components/ui/toast";
+import { invalidateDashboardCache } from "./dashboard";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -17,13 +19,18 @@ export const getClients = async (
   pageSize = DEFAULT_PAGE_SIZE,
 ): Promise<PaginatedResult<Client>> => {
   const user = await requireUser();
-  const redis = getRedis();
   const key = `clients:${user.id}:${page}:${pageSize}`
+  let redis: ReturnType<typeof getRedis> | undefined;
 
-  const cachedClients = await redis.get(key);
+  try {
+    redis = getRedis();
+    const cachedClients = await redis.get(key);
 
-  if(cachedClients){
-    return JSON.parse(cachedClients);
+    if(cachedClients){
+      return JSON.parse(cachedClients);
+    }
+  } catch (err) {
+    console.warn("Failed to read cached clients:", err);
   }
 
   const currentPage = Math.max(1, Number(page) || 1);
@@ -55,10 +62,9 @@ export const getClients = async (
   } as PaginatedResult<Client>;
 
   try {
-    await redis.set(key, JSON.stringify(returnValue), "EX", 60);
+    await redis?.set(key, JSON.stringify(returnValue), "EX", 60);
   } catch (err) {
     // non-fatal
-    // eslint-disable-next-line no-console
     console.warn("Failed to cache clients:", err);
   }
 
@@ -113,6 +119,7 @@ export const createClient = async (client: Client) => {
         hourlyRate: result.data.hourlyRate,
       } satisfies Prisma.ClientCreateInput,
     });
+    await invalidateDashboardCache(user.id);
     revalidatePath('/clients')
 
     return newClient;
@@ -147,7 +154,7 @@ export const getClientById = async(clientId:string)=>{
 export const updateClientName = async(clientId:string,name:string)=>{
   const user = await requireUser();
   try {
-    const client = await prisma.client.update({
+    await prisma.client.update({
       where:{
         id:clientId,
         userId:user.id
@@ -156,6 +163,8 @@ export const updateClientName = async(clientId:string,name:string)=>{
         name
       }
     })
+
+    await invalidateDashboardCache(user.id);
     revalidatePath("/clients")
     revalidatePath("/clients/[id]")
     
@@ -174,11 +183,15 @@ export const deleteClient = async(clientId:string)=>{
       }
     })
 
+    await invalidateDashboardCache(user.id);
     revalidatePath("/clients")
     revalidatePath("/clients/[id]")
 
     
   } catch (error) {
-    
+    toast.error({
+      title:"Error",
+      description:(error as Error).message
+    })
   }
 }

@@ -23,6 +23,40 @@ I want to be transparent about a few mistakes I made while implementing PDF gene
 
 Writing these down helped me spot fragility and make the code more resilient — hope it helps you too if you dig through the code.
 
+## Client Metrics and Dashboard Data
+
+The client table and the financial dashboard use the same underlying records, but they need them at different scopes.
+
+- A `Client` already contains its `name`, `email`, and `hourlyRate`.
+- `unbilledHours` is the sum of a client's `TimeLog.durationMinutes` where `status === "UNBILLED"`, divided by 60.
+- `unbilledAmount` is `unbilledHours * client.hourlyRate`.
+- `totalBilled` is the sum of every `Invoice.totalAmount` for the client, including both `PAID` and `UNPAID` invoices. It describes what has been invoiced, not necessarily what has been collected.
+- `collected` is the sum of `Invoice.totalAmount` where `status === "PAID"`.
+
+### Why not use only `getClients` for the graph?
+
+`getClients` is a paginated client-list query (10 clients by default). It supplies the client fields directly, and it can include a client's `timeLogs` and `invoices` when building a row for the Clients page. That makes it a good source for `ClientTableRow`:
+
+```ts
+{
+  id: client.id,
+  name: client.name,
+  email: client.email,
+  hourlyRate: client.hourlyRate,
+  unbilledHours,
+  unbilledAmount,
+  totalBilled,
+}
+```
+
+A dashboard chart, however, must aggregate all relevant logs and invoices by month. Building it from a paginated client result would omit data once the account has more clients than the current page. Use a dashboard-specific server query for the graph, then map its results to Recharts' simple shape:
+
+```ts
+{ month: "Jul", collected: 6450, unbilled: 2840 }
+```
+
+In short: extend `getClients` with relations for per-client table metrics; use a separate aggregate query for all-account monthly dashboard data. Do not build financial totals from the paginated `getTimeLogs(page)` result either, because it also returns one page at a time.
+
 
 ## 🚨 Project Status
 
