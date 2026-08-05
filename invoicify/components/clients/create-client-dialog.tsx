@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoadingIndicator } from "../application/loading-indicator/loading-indicator";
 
 export function CreateClientDialog() {
   const router = useRouter();
@@ -43,6 +44,8 @@ export function CreateClientDialog() {
       }
     });
   }
+
+  if(isPending) return <LoadingIndicator type="line-simple" size="md" label="Loading..."/>
 
   return (
     <>

@@ -247,7 +247,7 @@ export const generateInvoice = async (
     console.warn("Redis read failed for generation key:", err);
   }
 
-  const { items, totalHours, totalAmount } = await calculateTotalHoursAndLines(clientId, timeLogIds);
+  const { items, totalHours, totalAmount } = await calculateTotalHoursAndLines(clientId);
 
   //Making sure transaction happens per invoice mapping the items data to each record..
   const result = await prisma.$transaction(async (tx) => {
