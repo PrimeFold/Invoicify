@@ -18,7 +18,6 @@ export function ClientsPageHeader({ clientCount }: ClientsPageHeaderProps) {
           Manage client billing profiles, hourly rates, and active time logs.
         </p>
       </div>
-
       <CreateClientDialog />
     </div>
   );

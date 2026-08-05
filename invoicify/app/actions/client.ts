@@ -195,3 +195,35 @@ export const deleteClient = async(clientId:string)=>{
     })
   }
 }
+export async function getClientOptions() {
+  const user = await requireUser();
+  const key = `options-clients:${user.id}`
+  const redis = getRedis();
+  const cache = await redis.get(key);
+
+  if(cache){
+    return JSON.parse(cache);
+  }
+  const clientOptions = await prisma.client.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  try {
+    await redis.set(key,JSON.stringify(clientOptions),"EX",120);
+  } catch (error) {
+    //Caching errors shouldn't interrupt regular operations..
+    console.warn((error as Error).message)
+  }
+
+  return clientOptions;
+}
+

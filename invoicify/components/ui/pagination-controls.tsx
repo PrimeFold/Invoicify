@@ -6,19 +6,21 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-type ClientsPaginationProps = {
+type PaginationControlsProps = {
+  basePath: string;
   currentPage: number;
   totalPages: number;
   hasPreviousPage: boolean;
   hasNextPage: boolean;
 };
 
-export function ClientsPagination({
+export function PaginationControls({
+  basePath,
   currentPage,
   totalPages,
   hasPreviousPage,
   hasNextPage,
-}: ClientsPaginationProps) {
+}: PaginationControlsProps) {
   if (totalPages <= 1) return null;
 
   return (
@@ -26,7 +28,7 @@ export function ClientsPagination({
       <PaginationContent>
         {hasPreviousPage && (
           <PaginationItem>
-            <PaginationPrevious href={`/clients?page=${currentPage - 1}`} />
+            <PaginationPrevious href={`${basePath}?page=${currentPage - 1}`} />
           </PaginationItem>
         )}
 
@@ -38,7 +40,7 @@ export function ClientsPagination({
 
         {hasNextPage && (
           <PaginationItem>
-            <PaginationNext href={`/clients?page=${currentPage + 1}`} />
+            <PaginationNext href={`${basePath}?page=${currentPage + 1}`} />
           </PaginationItem>
         )}
       </PaginationContent>

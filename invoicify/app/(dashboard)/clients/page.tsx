@@ -1,7 +1,7 @@
 import { ClientsMetrics, type ClientMetrics } from "@/components/clients/clients-metrics";
 import { ClientsPageHeader } from "@/components/clients/clients-page-header";
-import { ClientsPagination } from "@/components/clients/clients-pagination";
 import { ClientsTable, type ClientTableRow } from "@/components/clients/clients-table";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getClients } from "@/app/actions/client";
 
@@ -37,7 +37,8 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         <ClientsPageHeader clientCount={clientResult.total} />
         <ClientsMetrics metrics={metrics} />
         <ClientsTable clients={clients} />
-        <ClientsPagination
+        <PaginationControls
+          basePath="/clients"
           currentPage={clientResult.page}
           totalPages={clientResult.totalPages}
           hasPreviousPage={clientResult.hasPreviousPage}

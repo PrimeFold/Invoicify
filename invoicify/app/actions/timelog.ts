@@ -16,6 +16,8 @@ type CreateTimeLogInput = {
     status: "UNBILLED" | "INVOICED";
 };
 
+
+
 export const createTimeLog = async(data: CreateTimeLogInput) => {
     try {
         const user = await requireUser();
@@ -48,7 +50,7 @@ export const createTimeLog = async(data: CreateTimeLogInput) => {
 
 export const getTimeLogs = async (page : number): Promise<PaginatedResult<TimeLog>> => {
     const user = await requireUser();
-
+    
     const currentPage = Math.max(1 , Number(page) || 1);
     const take = DEFAULT_PAGE_SIZE;
     const skip = (currentPage - 1)*take;

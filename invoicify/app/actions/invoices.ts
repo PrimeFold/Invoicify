@@ -4,6 +4,7 @@ import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
 import { getRedis } from "@/lib/redis";
 import { TimeLog } from "@/types/timeLog";
+import type { PaginatedResult } from "@/types/pagination";
 import { invalidateDashboardCache } from "./dashboard";
 
 type InvoiceLine = {
@@ -14,6 +15,86 @@ type InvoiceLine = {
   lineTotal: number;
 };
 
+type InvoiceListItem = {
+  id: string;
+  invoiceNumber: string;
+  totalAmount: number;
+  status: string;
+  createdAt: Date;
+  client: {
+    name: string;
+    email: string;
+  };
+};
+
+export type InvoiceSummary = {
+  totalInvoices: number;
+  collectedAmount: number;
+  paidCount: number;
+  unpaidAmount: number;
+  unpaidCount: number;
+  overdueAmount: number;
+  overdueCount: number;
+};
+
+const INVOICE_PAGE_SIZE = 10;
+
+export const getInvoices = async (page = 1): Promise<PaginatedResult<InvoiceListItem>> => {
+  const user = await requireUser();
+  const currentPage = Math.max(1, Number(page) || 1);
+  const skip = (currentPage - 1) * INVOICE_PAGE_SIZE;
+  const where = { userId: user.id };
+
+  const [items, total] = await prisma.$transaction([
+    prisma.invoice.findMany({
+      where,
+      include: {
+        client: {
+          select: { name: true, email: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: INVOICE_PAGE_SIZE,
+    }),
+    prisma.invoice.count({ where }),
+  ]);
+
+  return {
+    items,
+    page: currentPage,
+    pageSize: INVOICE_PAGE_SIZE,
+    total,
+    totalPages: Math.ceil(total / INVOICE_PAGE_SIZE),
+    hasNextPage: skip + items.length < total,
+    hasPreviousPage: currentPage > 1,
+  };
+};
+
+export const getInvoiceSummary = async (): Promise<InvoiceSummary> => {
+  const user = await requireUser();
+  const summaries = await prisma.invoice.groupBy({
+    by: ["status"],
+    where: { userId: user.id },
+    _count: { _all: true },
+    _sum: { totalAmount: true },
+  });
+
+  const paid = summaries.find((summary) => summary.status === "PAID");
+  const unpaid = summaries.find((summary) => summary.status === "UNPAID");
+
+  return {
+    totalInvoices: summaries.reduce((total, summary) => total + summary._count._all, 0),
+    collectedAmount: paid?._sum.totalAmount ?? 0,
+    paidCount: paid?._count._all ?? 0,
+    unpaidAmount: unpaid?._sum.totalAmount ?? 0,
+    unpaidCount: unpaid?._count._all ?? 0,
+    // The schema has no due date or OVERDUE invoice status yet.
+    overdueAmount: 0,
+    overdueCount: 0,
+  };
+};
+
 
 //Rounding off
 const roundCurrency = (amount: number) => Math.round(amount * 100) / 100;
@@ -21,18 +102,16 @@ const roundCurrency = (amount: number) => Math.round(amount * 100) / 100;
 //Creation of Invoice number
 const createInvoiceNumber = () => `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
-//Getting all unbilled logs by client and timelog ids-(array)..
-// `timeLogIds` is optional: may omit it to invoice every unbilled log for the client.
-export const getAllUnBilledLogsById = async (clientId: string,timeLogIds?: string[]) => {
+//Getting all unbilled logs by client 
+export const getAllUnBilledLogsById = async (clientId: string) => {
   const user = await requireUser();
   const redis = getRedis();
-  if(!timeLogIds){
-    throw new Error("Time logs not detected!")
-  }
-  const key = `unbilled-logs:${user.id}:${clientId}:${[...timeLogIds].sort().join(",")}`
+
+  const key = `unbilled-logs:${user.id}:${clientId}`;
+
   const cache = await redis.get(key);
 
-  if(cache){
+  if (cache) {
     return JSON.parse(cache);
   }
 
@@ -41,29 +120,24 @@ export const getAllUnBilledLogsById = async (clientId: string,timeLogIds?: strin
       clientId,
       userId: user.id,
       status: "UNBILLED",
-      ...(timeLogIds ? { id: { in: timeLogIds } } : {}), //finds and adds each matching record to the array , if not found then empty item..
     },
-    orderBy: { startTime: "asc" },
+    orderBy: {
+      startTime: "asc",
+    },
   });
 
-
-  //Checks to see if there are logs available or not..
   if (logs.length === 0) {
     throw new Error("No unbilled time logs found for this client.");
   }
 
-  //Checks to ensure the timeLog Ids array's length is the same as logs array length..
-  if (timeLogIds && logs.length !== timeLogIds.length) {
-    throw new Error("One or more selected time logs cannot be invoiced.");
-  }
+  // Cache for 2 minutes
+  await redis.set(key, JSON.stringify(logs), "EX", 120);
 
   return logs;
 };
 
-
 export const calculateTotalHoursAndLines = async (
-  clientId: string,
-  timeLogIds?: string[],
+  clientId: string
 ) => {
   const user = await requireUser();
 
@@ -78,7 +152,7 @@ export const calculateTotalHoursAndLines = async (
   }
 
 
-  const logs = await getAllUnBilledLogsById(clientId, timeLogIds);
+  const logs = await getAllUnBilledLogsById(clientId);
   const rate = client.hourlyRate;
 
   const items: InvoiceLine[] = logs.map((log:TimeLog) => {
