@@ -1,5 +1,7 @@
 node_modules
 .next
+.claude
+.windsurf
 dist
 build
 coverage
