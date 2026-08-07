@@ -14,8 +14,8 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register") ||
-    request.nextUrl.pathname.startsWith("/signup")||
-     request.nextUrl.pathname.startsWith("/api/invoices/demo/pdf");
+    request.nextUrl.pathname.startsWith("/signup") ||
+    request.nextUrl.pathname.startsWith("/api/invoices/demo/pdf");
 
   if (!session?.user && !isAuthRoute && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));

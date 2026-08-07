@@ -1,8 +1,14 @@
 import { getClients } from "@/app/actions/client";
 import { getTimeLogs } from "@/app/actions/timelog";
-import { TimeLogMetrics, type TimeLogMetrics as TimeLogMetricsData } from "@/components/timelogs/time-log-metrics";
+import {
+  TimeLogMetrics,
+  type TimeLogMetrics as TimeLogMetricsData,
+} from "@/components/timelogs/time-log-metrics";
 import { TimeLogsPageHeader } from "@/components/timelogs/time-logs-page-header";
-import { TimeLogsTable, type TimeLogTableRow } from "@/components/timelogs/time-logs-table";
+import {
+  TimeLogsTable,
+  type TimeLogTableRow,
+} from "@/components/timelogs/time-logs-table";
 import { TimeTracker } from "@/components/timelogs/time-tracker";
 
 function formatDuration(minutes: number) {
@@ -67,14 +73,17 @@ export default async function TimeLogsPage() {
       unbilledHours: 0,
       billedAmount: 0,
       billedHours: 0,
-    },
+    }
   );
 
   return (
     <div className="space-y-6">
       <TimeLogsPageHeader logCount={timeLogResult.total} />
       <TimeTracker
-        clients={clientResult.items.map((client) => ({ id: client.id!, name: client.name }))}
+        clients={clientResult.items.map((client) => ({
+          id: client.id!,
+          name: client.name,
+        }))}
       />
       <TimeLogMetrics metrics={metrics} />
       <TimeLogsTable logs={logs} />

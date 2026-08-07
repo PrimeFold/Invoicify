@@ -2,7 +2,9 @@ import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { auth } from "@/auth";
 
-export async function getSessionFromHeaders(headersValue: Headers | NextRequest["headers"]) {
+export async function getSessionFromHeaders(
+  headersValue: Headers | NextRequest["headers"]
+) {
   return auth.api.getSession({ headers: headersValue });
 }
 

@@ -1,4 +1,3 @@
-
 export type PaginatedResult<T> = {
   items: T[];
   page: number;
@@ -8,4 +7,3 @@ export type PaginatedResult<T> = {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
 };
-

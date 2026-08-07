@@ -16,7 +16,13 @@ export function SectionHeading({
   className,
 }: SectionHeadingProps) {
   return (
-    <div className={cn("mx-auto max-w-2xl", align === "center" ? "text-center" : "text-left", className)}>
+    <div
+      className={cn(
+        "mx-auto max-w-2xl",
+        align === "center" ? "text-center" : "text-left",
+        className
+      )}
+    >
       {eyebrow ? (
         <p className="text-sm font-semibold text-indigo-600">{eyebrow}</p>
       ) : null}

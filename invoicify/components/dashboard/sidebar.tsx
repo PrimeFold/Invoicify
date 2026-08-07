@@ -73,11 +73,7 @@ export default function Sidebar() {
                         : pathname.startsWith(item.href);
 
                     return (
-                      <NavItem
-                        key={item.href}
-                        {...item}
-                        active={isActive}
-                      />
+                      <NavItem key={item.href} {...item} active={isActive} />
                     );
                   })}
                 </div>
@@ -109,8 +105,12 @@ export default function Sidebar() {
                 AR
               </div>
               <div className="min-w-0">
-                <p className="font-sans text-xs font-medium text-txt-primary truncate">Aditya Raj</p>
-                <p className="font-mono text-[10px] text-txt-muted truncate">aditya@invoicify.dev</p>
+                <p className="font-sans text-xs font-medium text-txt-primary truncate">
+                  Aditya Raj
+                </p>
+                <p className="font-mono text-[10px] text-txt-muted truncate">
+                  aditya@invoicify.dev
+                </p>
               </div>
             </div>
 
@@ -160,7 +160,9 @@ function NavItem({
         <Icon
           className={[
             "size-4 transition-colors",
-            active ? "text-txt-primary" : "text-txt-muted group-hover:text-txt-primary",
+            active
+              ? "text-txt-primary"
+              : "text-txt-muted group-hover:text-txt-primary",
           ].join(" ")}
         />
         <span>{label}</span>

@@ -39,7 +39,7 @@ export async function getPdfCache(invoiceId: string): Promise<Buffer | null> {
 
 export async function setPdfCache(
   invoiceId: string,
-  pdfBuffer: Buffer,
+  pdfBuffer: Buffer
 ): Promise<void> {
   const redis = getRedis();
   const key = `invoice-pdf:${invoiceId}`;

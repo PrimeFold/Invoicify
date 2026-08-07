@@ -36,7 +36,9 @@ function InvoicePreviewHeader({ clientName }: { clientName: string }) {
       <div className="flex items-center justify-between gap-4">
         <div>
           <CardTitle className="text-2xl">Invoice Preview</CardTitle>
-          <CardDescription>Shared invoice view for {clientName}</CardDescription>
+          <CardDescription>
+            Shared invoice view for {clientName}
+          </CardDescription>
         </div>
         <Badge variant="secondary">Preview</Badge>
       </div>
@@ -63,7 +65,9 @@ function InvoicePreviewDetails({
       </div>
       <div>
         <p className="text-sm text-muted-foreground">Date</p>
-        <p className="font-medium">{new Date(createdAt).toLocaleDateString()}</p>
+        <p className="font-medium">
+          {new Date(createdAt).toLocaleDateString()}
+        </p>
       </div>
       <div>
         <p className="text-sm text-muted-foreground">Client</p>
@@ -81,7 +85,10 @@ function InvoicePreviewItems({ items }: { items: InvoicePreviewItem[] }) {
   return (
     <div className="space-y-3">
       {items.map((item, index) => (
-        <div key={`${item.description}-${index}`} className="flex justify-between gap-4">
+        <div
+          key={`${item.description}-${index}`}
+          className="flex justify-between gap-4"
+        >
           <div>
             <p className="font-medium">{item.description}</p>
             <p className="text-sm text-muted-foreground">{item.hours}h</p>
@@ -102,7 +109,11 @@ function InvoicePreviewSummary({ totalAmount }: { totalAmount: number }) {
   );
 }
 
-export function InvoicePreviewCard({ preview }: { preview: InvoicePreviewData }) {
+export function InvoicePreviewCard({
+  preview,
+}: {
+  preview: InvoicePreviewData;
+}) {
   return (
     <div className="min-h-screen bg-background p-6">
       <Card className="mx-auto max-w-3xl">

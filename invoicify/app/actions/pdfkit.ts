@@ -9,13 +9,13 @@ const formatCurrency = (amount: number) =>
     currency: "USD",
   }).format(amount);
 
-
 export type InvoiceWithClientAndItems = Prisma.InvoiceGetPayload<{
   include: { client: true; items: true };
 }>;
 
-  
-export const buildInvoicePdfBuffer = async (invoice: InvoiceWithClientAndItems) => {
+export const buildInvoicePdfBuffer = async (
+  invoice: InvoiceWithClientAndItems
+) => {
   const doc = new PDFDocument({ margin: 40, size: "A4" });
   const chunks: Buffer[] = [];
 

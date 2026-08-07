@@ -1,7 +1,27 @@
-import { Building2, Clock, DollarSign, FileText, Mail, MoreVertical } from "lucide-react";
+import {
+  Building2,
+  Clock,
+  DollarSign,
+  FileText,
+  Mail,
+  MoreVertical,
+  Trash,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export type ClientTableRow = {
   id: string;
@@ -33,13 +53,18 @@ export function ClientsTable({ clients }: ClientsTableProps) {
           </thead>
           <tbody className="divide-y divide-line/60 font-mono text-xs">
             {clients.length > 0 ? (
-              clients.map((client) => <ClientRow key={client.id} client={client} />)
+              clients.map((client) => (
+                <ClientRow key={client.id} client={client} />
+              ))
             ) : (
               <tr>
                 <td colSpan={5} className="px-4 py-12 text-center">
-                  <p className="font-sans text-sm font-medium text-txt-primary">No clients to display</p>
+                  <p className="font-sans text-sm font-medium text-txt-primary">
+                    No clients to display
+                  </p>
                   <p className="mt-1 text-xs text-txt-muted">
-                    Connect this table to the client query, then add a client to start tracking billable work.
+                    Connect this table to the client query, then add a client to
+                    start tracking billable work.
                   </p>
                 </td>
               </tr>
@@ -62,7 +87,9 @@ function ClientRow({ client }: { client: ClientTableRow }) {
             <Building2 className="size-4" />
           </span>
           <div>
-            <p className="font-sans text-sm font-medium text-txt-primary">{client.name}</p>
+            <p className="font-sans text-sm font-medium text-txt-primary">
+              {client.name}
+            </p>
             <span className="mt-0.5 inline-flex items-center gap-1 font-mono text-[11px] text-txt-muted">
               <Mail className="size-3" /> {client.email}
             </span>
@@ -78,40 +105,79 @@ function ClientRow({ client }: { client: ClientTableRow }) {
       <td className="px-4 py-3.5">
         {hasUnbilledTime && client.unbilledAmount !== undefined ? (
           <div>
-            <p className="font-semibold text-status-pending">{formatCurrency(client.unbilledAmount)}</p>
-            <p className="text-[10px] text-txt-muted">{client.unbilledHours} hrs pending</p>
+            <p className="font-semibold text-status-pending">
+              {formatCurrency(client.unbilledAmount)}
+            </p>
+            <p className="text-[10px] text-txt-muted">
+              {client.unbilledHours} hrs pending
+            </p>
           </div>
         ) : (
           <span className="text-txt-muted">—</span>
         )}
       </td>
       <td className="px-4 py-3.5 font-semibold text-txt-primary">
-        {client.totalBilled === undefined ? "—" : formatCurrency(client.totalBilled)}
+        {client.totalBilled === undefined
+          ? "—"
+          : formatCurrency(client.totalBilled)}
       </td>
       <td className="px-4 py-3.5 text-right">
         <div className="flex items-center justify-end gap-1">
           <ClientAction label="Log Time for Client" icon={Clock} />
           <ClientAction label="Generate Invoice" icon={FileText} />
-          <Button variant="ghost" size="sm" aria-label={`More options for ${client.name}`} className="size-8 p-0 text-txt-muted hover:bg-surface-hover hover:text-txt-primary">
-            <MoreVertical className="size-3.5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`More options for ${client.name}`}
+                  className="size-8 p-0 text-txt-muted hover:bg-surface-hover hover:text-txt-primary"
+                >
+                  <MoreVertical className="size-3.5" />
+                </Button>
+              }
+            ></DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <p className="text-red-400 flex gap-2 h-auto w-auto ">
+                    Delete <Trash />
+                  </p>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </td>
     </tr>
   );
 }
 
-function ClientAction({ label, icon: Icon }: { label: string; icon: typeof Clock }) {
+function ClientAction({
+  label,
+  icon: Icon,
+}: {
+  label: string;
+  icon: typeof Clock;
+}) {
   return (
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button variant="ghost" size="sm" aria-label={label} className="size-8 p-0 text-txt-secondary hover:bg-surface-hover hover:text-txt-primary">
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={label}
+            className="size-8 p-0 text-txt-secondary hover:bg-surface-hover hover:text-txt-primary"
+          >
             <Icon className="size-3.5" />
           </Button>
         }
       />
-      <TooltipContent className="border-line bg-canvas font-mono text-[10px] text-txt-primary">{label}</TooltipContent>
+      <TooltipContent className="border-line bg-canvas font-mono text-[10px] text-txt-primary">
+        {label}
+      </TooltipContent>
     </Tooltip>
   );
 }

@@ -40,9 +40,9 @@ type DashboardData = Awaited<ReturnType<typeof loadDashboardData>>;
 export async function invalidateDashboardCache(userId: string) {
   try {
     await getRedis().del(cacheKey(userId));
-  } catch(error) {
+  } catch (error) {
     // Cache failures must not undo a successful database mutation.
-    console.log((error as Error).message)
+    console.log((error as Error).message);
   }
 }
 
@@ -65,7 +65,12 @@ export async function getDashboardData(): Promise<DashboardData> {
   const dashboardData = await loadDashboardData(user.id);
 
   try {
-    await redis?.set(key, JSON.stringify(dashboardData), "EX", CACHE_TTL_SECONDS);
+    await redis?.set(
+      key,
+      JSON.stringify(dashboardData),
+      "EX",
+      CACHE_TTL_SECONDS
+    );
   } catch {
     // The dashboard data is still valid even if it cannot be cached.
   }

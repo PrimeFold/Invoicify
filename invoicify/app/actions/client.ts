@@ -1,5 +1,5 @@
 //functions for all client related stuff..
-"use server"
+"use server";
 
 import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/auth";
@@ -16,17 +16,17 @@ const DEFAULT_PAGE_SIZE = 10;
 
 export const getClients = async (
   page = 1,
-  pageSize = DEFAULT_PAGE_SIZE,
+  pageSize = DEFAULT_PAGE_SIZE
 ): Promise<PaginatedResult<Client>> => {
   const user = await requireUser();
-  const key = `clients:${user.id}:${page}:${pageSize}`
+  const key = `clients:${user.id}:${page}:${pageSize}`;
   let redis: ReturnType<typeof getRedis> | undefined;
 
   try {
     redis = getRedis();
     const cachedClients = await redis.get(key);
 
-    if(cachedClients){
+    if (cachedClients) {
       return JSON.parse(cachedClients);
     }
   } catch (err) {
@@ -49,7 +49,6 @@ export const getClients = async (
   ]);
 
   const totalPages = Math.ceil(total / take);
-
 
   const returnValue = {
     items,
@@ -78,8 +77,6 @@ export const getClients = async (
     hasPreviousPage: currentPage > 1,
   };
 };
-
-
 
 export const getClientInformation = async (clientId: string) => {
   const user = await requireUser();
@@ -120,88 +117,82 @@ export const createClient = async (client: Client) => {
       } satisfies Prisma.ClientCreateInput,
     });
     await invalidateDashboardCache(user.id);
-    revalidatePath('/clients')
+    revalidatePath("/clients");
 
     return newClient;
-
   } catch (error) {
     throw error;
   }
 };
 
-export const getClientById = async(clientId:string)=>{
+export const getClientById = async (clientId: string) => {
   const user = await requireUser();
   try {
     const client = await prisma.client.findFirst({
-      where:{
-        id:clientId,
-        userId:user.id
-      }
-    })
+      where: {
+        id: clientId,
+        userId: user.id,
+      },
+    });
 
-    if(!client){
-      throw new Error("Client doesn't exist")
+    if (!client) {
+      throw new Error("Client doesn't exist");
     }
-    
+
     return client;
-
   } catch (error) {
-    throw new Error((error as Error).message)
+    throw new Error((error as Error).message);
   }
-}
+};
 
-
-export const updateClientName = async(clientId:string,name:string)=>{
+export const updateClientName = async (clientId: string, name: string) => {
   const user = await requireUser();
   try {
     await prisma.client.update({
-      where:{
-        id:clientId,
-        userId:user.id
+      where: {
+        id: clientId,
+        userId: user.id,
       },
-      data:{
-        name
-      }
-    })
+      data: {
+        name,
+      },
+    });
 
     await invalidateDashboardCache(user.id);
-    revalidatePath("/clients")
-    revalidatePath("/clients/[id]")
-    
+    revalidatePath("/clients");
+    revalidatePath("/clients/[id]");
   } catch (error) {
-    throw new Error((error as Error).message)
+    throw new Error((error as Error).message);
   }
-}
+};
 
-export const deleteClient = async(clientId:string)=>{
+export const deleteClient = async (clientId: string) => {
   const user = await requireUser();
   try {
     const client = await prisma.client.delete({
-      where:{
-        id:clientId,
-        userId:user.id
-      }
-    })
+      where: {
+        id: clientId,
+        userId: user.id,
+      },
+    });
 
     await invalidateDashboardCache(user.id);
-    revalidatePath("/clients")
-    revalidatePath("/clients/[id]")
-
-    
+    revalidatePath("/clients");
+    revalidatePath("/clients/[id]");
   } catch (error) {
     toast.error({
-      title:"Error",
-      description:(error as Error).message
-    })
+      title: "Error",
+      description: (error as Error).message,
+    });
   }
-}
+};
 export async function getClientOptions() {
   const user = await requireUser();
-  const key = `options-clients:${user.id}`
+  const key = `options-clients:${user.id}`;
   const redis = getRedis();
   const cache = await redis.get(key);
 
-  if(cache){
+  if (cache) {
     return JSON.parse(cache);
   }
   const clientOptions = await prisma.client.findMany({
@@ -218,12 +209,11 @@ export async function getClientOptions() {
   });
 
   try {
-    await redis.set(key,JSON.stringify(clientOptions),"EX",120);
+    await redis.set(key, JSON.stringify(clientOptions), "EX", 120);
   } catch (error) {
     //Caching errors shouldn't interrupt regular operations..
-    console.warn((error as Error).message)
+    console.warn((error as Error).message);
   }
 
   return clientOptions;
 }
-

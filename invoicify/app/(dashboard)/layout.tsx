@@ -4,7 +4,11 @@ import { requireUser } from "@/lib/auth/session";
 import AccountDropDown from "@/components/dashboard/account-dropdown";
 import Sidebar from "@/components/dashboard/sidebar";
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const user = await requireUser();
   const { name, email, emailVerified } = user;
 
@@ -16,16 +20,18 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <Brand />
           </div>
           <div className="flex items-center gap-8">
-            <AccountDropDown name={name} email={email} emailVerified={emailVerified} />
+            <AccountDropDown
+              name={name}
+              email={email}
+              emailVerified={emailVerified}
+            />
           </div>
         </div>
       </header>
       <div className="flex flex-1 mx-25">
-        <Sidebar/>
-        <main className="min-w-0 flex-1 bg-canvas px-6 py-8">
-          {children}
-        </main>
-        </div>
+        <Sidebar />
+        <main className="min-w-0 flex-1 bg-canvas px-6 py-8">{children}</main>
+      </div>
     </div>
   );
 }

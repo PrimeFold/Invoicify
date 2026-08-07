@@ -26,11 +26,13 @@ export default async function InvoicePreviewPage({
       clientEmail: invoice.client.email,
       totalAmount: invoice.totalAmount,
       createdAt: invoice.createdAt.toISOString(),
-      items: invoice.items.map((item: { description: string; hours: number; lineTotal: number }) => ({
-        description: item.description,
-        hours: item.hours,
-        lineTotal: item.lineTotal,
-      })),
+      items: invoice.items.map(
+        (item: { description: string; hours: number; lineTotal: number }) => ({
+          description: item.description,
+          hours: item.hours,
+          lineTotal: item.lineTotal,
+        })
+      ),
     };
 
     await redis.set(key, JSON.stringify(preview), "EX", 60);

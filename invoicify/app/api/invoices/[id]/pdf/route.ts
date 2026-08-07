@@ -6,7 +6,7 @@ import { pdfResponse } from "@/utils/pdf-response";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -46,7 +46,7 @@ export async function GET(
         headers: {
           "Content-Type": "text/html; charset=utf-8",
         },
-      },
+      }
     );
   }
 }

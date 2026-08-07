@@ -1,7 +1,7 @@
-'use client';
-import { cn } from '@/lib/utils';
-import { motion, Transition, Variants } from 'motion/react';
-import React, { CSSProperties } from 'react';
+"use client";
+import { cn } from "@/lib/utils";
+import { motion, Transition, Variants } from "motion/react";
+import React, { CSSProperties } from "react";
 
 export type SpinningTextProps = {
   children: string;
@@ -20,7 +20,7 @@ export type SpinningTextProps = {
 
 const BASE_TRANSITION = {
   repeat: Infinity,
-  ease: 'linear',
+  ease: "linear",
 };
 
 const BASE_ITEM_VARIANTS = {
@@ -43,7 +43,7 @@ export function SpinningText({
   transition,
   variants,
 }: SpinningTextProps) {
-  const letters = children.split('');
+  const letters = children.split("");
   const totalLetters = letters.length;
 
   const finalTransition = {
@@ -64,41 +64,41 @@ export function SpinningText({
 
   return (
     <motion.div
-      className={cn('relative', className)}
+      className={cn("relative", className)}
       style={{
         ...style,
       }}
-      initial='hidden'
-      animate='visible'
+      initial="hidden"
+      animate="visible"
       variants={containerVariants}
       transition={finalTransition}
     >
       {letters.map((letter, index) => (
         <motion.span
-          aria-hidden='true'
+          aria-hidden="true"
           key={`${index}-${letter}`}
           variants={itemVariants}
-          className='absolute left-1/2 top-1/2 inline-block'
+          className="absolute left-1/2 top-1/2 inline-block"
           style={
             {
-              '--index': index,
-              '--total': totalLetters,
-              '--font-size': fontSize,
-              '--radius': radius,
+              "--index": index,
+              "--total": totalLetters,
+              "--font-size": fontSize,
+              "--radius": radius,
               fontSize: `calc(var(--font-size, 2) * 1rem)`,
               transform: `
                   translate(-50%, -50%)
                   rotate(calc(360deg / var(--total) * var(--index)))
                   translateY(calc(var(--radius, 5) * -1ch))
                 `,
-              transformOrigin: 'center',
+              transformOrigin: "center",
             } as React.CSSProperties
           }
         >
           {letter}
         </motion.span>
       ))}
-      <span className='sr-only'>{children}</span>
+      <span className="sr-only">{children}</span>
     </motion.div>
   );
 }

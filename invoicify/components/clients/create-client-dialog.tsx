@@ -40,12 +40,15 @@ export function CreateClientDialog() {
         setOpen(false);
         router.refresh();
       } catch (error) {
-        setError(error instanceof Error ? error.message : "Unable to create client.");
+        setError(
+          error instanceof Error ? error.message : "Unable to create client."
+        );
       }
     });
   }
 
-  if(isPending) return <LoadingIndicator type="line-simple" size="md" label="Loading..."/>
+  if (isPending)
+    return <LoadingIndicator type="line-simple" size="md" label="Loading..." />;
 
   return (
     <>
@@ -62,13 +65,21 @@ export function CreateClientDialog() {
         <DialogContent className="border-line bg-surface text-txt-primary">
           <DialogHeader>
             <DialogTitle>Add Client</DialogTitle>
-            <DialogDescription>Set up a client and their default hourly rate.</DialogDescription>
+            <DialogDescription>
+              Set up a client and their default hourly rate.
+            </DialogDescription>
           </DialogHeader>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="client-name">Name</Label>
-              <Input id="client-name" name="name" minLength={4} maxLength={30} required />
+              <Input
+                id="client-name"
+                name="name"
+                minLength={4}
+                maxLength={30}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="client-email">Email</Label>
@@ -76,14 +87,30 @@ export function CreateClientDialog() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="client-hourly-rate">Hourly rate (USD)</Label>
-              <Input id="client-hourly-rate" name="hourlyRate" type="number" min="0" step="0.01" required />
+              <Input
+                id="client-hourly-rate"
+                name="hourlyRate"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+              />
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>Cancel</Button>
-              <Button type="submit" disabled={isPending}>{isPending ? "Creating…" : "Create Client"}</Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Creating…" : "Create Client"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

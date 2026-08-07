@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { authClient } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/auth/auth-card";
 import { toast } from "@/components/ui/toast";
+import { authClient } from "@/lib/auth";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -53,9 +53,9 @@ export function AuthForm({ mode }: AuthFormProps) {
         router.push("/dashboard");
       } else {
         toast.success({
-          title:"Sucess",
-          description:"Account created Successfuly!"
-        })
+          title: "Sucess",
+          description: "Account created Successfuly!",
+        });
         router.push("/login");
       }
     } catch (err) {
@@ -73,16 +73,26 @@ export function AuthForm({ mode }: AuthFormProps) {
   return (
     <AuthCard
       title={isLogin ? "Sign in" : "Create your account"}
-      description={isLogin ? "Welcome back. Sign in to continue to Invoicify." : "Start tracking time and creating invoices in minutes."}
+      description={
+        isLogin
+          ? "Welcome back. Sign in to continue to Invoicify."
+          : "Start tracking time and creating invoices in minutes."
+      }
       footer={
         <p className="text-center text-sm text-txt-muted">
           {isLogin ? (
             <>
-              New here? <Link href="/register" className="font-medium text-txt-primary">Create an account</Link>
+              New here?{" "}
+              <Link href="/register" className="font-medium text-txt-primary">
+                Create an account
+              </Link>
             </>
           ) : (
             <>
-              Already have an account? <Link href="/login" className="font-medium text-txt-primary">Sign in</Link>
+              Already have an account?{" "}
+              <Link href="/login" className="font-medium text-txt-primary">
+                Sign in
+              </Link>
             </>
           )}
         </p>
@@ -133,7 +143,11 @@ export function AuthForm({ mode }: AuthFormProps) {
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Please wait..." : isLogin ? "Sign in" : "Create account"}
+          {isSubmitting
+            ? "Please wait..."
+            : isLogin
+              ? "Sign in"
+              : "Create account"}
         </Button>
       </form>
     </AuthCard>

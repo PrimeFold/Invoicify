@@ -39,7 +39,9 @@ export type InvoiceSummary = {
 
 const INVOICE_PAGE_SIZE = 10;
 
-export const getInvoices = async (page = 1): Promise<PaginatedResult<InvoiceListItem>> => {
+export const getInvoices = async (
+  page = 1
+): Promise<PaginatedResult<InvoiceListItem>> => {
   const user = await requireUser();
   const currentPage = Math.max(1, Number(page) || 1);
   const skip = (currentPage - 1) * INVOICE_PAGE_SIZE;
@@ -84,7 +86,10 @@ export const getInvoiceSummary = async (): Promise<InvoiceSummary> => {
   const unpaid = summaries.find((summary) => summary.status === "UNPAID");
 
   return {
-    totalInvoices: summaries.reduce((total, summary) => total + summary._count._all, 0),
+    totalInvoices: summaries.reduce(
+      (total, summary) => total + summary._count._all,
+      0
+    ),
     collectedAmount: paid?._sum.totalAmount ?? 0,
     paidCount: paid?._count._all ?? 0,
     unpaidAmount: unpaid?._sum.totalAmount ?? 0,
@@ -95,14 +100,14 @@ export const getInvoiceSummary = async (): Promise<InvoiceSummary> => {
   };
 };
 
-
 //Rounding off
 const roundCurrency = (amount: number) => Math.round(amount * 100) / 100;
 
 //Creation of Invoice number
-const createInvoiceNumber = () => `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+const createInvoiceNumber = () =>
+  `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
-//Getting all unbilled logs by client 
+//Getting all unbilled logs by client
 export const getAllUnBilledLogsById = async (clientId: string) => {
   const user = await requireUser();
   const redis = getRedis();
@@ -136,9 +141,7 @@ export const getAllUnBilledLogsById = async (clientId: string) => {
   return logs;
 };
 
-export const calculateTotalHoursAndLines = async (
-  clientId: string
-) => {
+export const calculateTotalHoursAndLines = async (clientId: string) => {
   const user = await requireUser();
 
   // Fetch the rate from the database. Never trust a rate or line total sent by the client.
@@ -151,11 +154,10 @@ export const calculateTotalHoursAndLines = async (
     throw new Error("Client not found.");
   }
 
-
   const logs = await getAllUnBilledLogsById(clientId);
   const rate = client.hourlyRate;
 
-  const items: InvoiceLine[] = logs.map((log:TimeLog) => {
+  const items: InvoiceLine[] = logs.map((log: TimeLog) => {
     const hours = log.durationMinutes / 60;
     const lineTotal = roundCurrency(hours * rate);
 
@@ -172,20 +174,18 @@ export const calculateTotalHoursAndLines = async (
     items,
     totalHours: items.reduce((total, item) => total + item.hours, 0),
     totalAmount: roundCurrency(
-      items.reduce((total, item) => total + item.lineTotal, 0),
+      items.reduce((total, item) => total + item.lineTotal, 0)
     ),
   };
 };
 
-
-
 export const getInvoiceById = async (invoiceId: string) => {
   const user = await requireUser();
-  const redis= getRedis();
-  const key = `invoice:${invoiceId}`
+  const redis = getRedis();
+  const key = `invoice:${invoiceId}`;
   const cachedInvoice = await redis.get(key);
 
-  if(cachedInvoice){
+  if (cachedInvoice) {
     const invoice = JSON.parse(cachedInvoice);
     // normalize date fields (Redis stores strings)
     if (invoice.createdAt) invoice.createdAt = new Date(invoice.createdAt);
@@ -203,7 +203,6 @@ export const getInvoiceById = async (invoiceId: string) => {
     },
   });
 
-  
   if (!invoice) {
     throw new Error("Invoice not found.");
   }
@@ -217,7 +216,7 @@ export const getInvoiceById = async (invoiceId: string) => {
 
 export const generateInvoice = async (
   clientId: string,
-  timeLogIds: string[],
+  timeLogIds: string[]
 ) => {
   const redis = getRedis();
 
@@ -237,7 +236,8 @@ export const generateInvoice = async (
       const parsed = JSON.parse(cached);
       if (parsed && parsed.invoice) {
         // restore createdAt
-        if (parsed.invoice.createdAt) parsed.invoice.createdAt = new Date(parsed.invoice.createdAt);
+        if (parsed.invoice.createdAt)
+          parsed.invoice.createdAt = new Date(parsed.invoice.createdAt);
         return parsed;
       }
     }
@@ -247,7 +247,8 @@ export const generateInvoice = async (
     console.warn("Redis read failed for generation key:", err);
   }
 
-  const { items, totalHours, totalAmount } = await calculateTotalHoursAndLines(clientId);
+  const { items, totalHours, totalAmount } =
+    await calculateTotalHoursAndLines(clientId);
 
   //Making sure transaction happens per invoice mapping the items data to each record..
   const result = await prisma.$transaction(async (tx) => {
@@ -272,15 +273,15 @@ export const generateInvoice = async (
     //Updating timelog statuses as well..
     // The status condition prevents a log being invoiced twice by concurrent requests.
     const updatedLogs = await tx.timeLog.updateMany({
-      where:{
-        id:{in:timeLogIds},
+      where: {
+        id: { in: timeLogIds },
         clientId,
-        userId:user.id
+        userId: user.id,
       },
-      data:{
-        status:"INVOICED"
-      }
-    })
+      data: {
+        status: "INVOICED",
+      },
+    });
 
     if (updatedLogs.count !== timeLogIds.length) {
       throw new Error("One or more selected time logs were already invoiced.");
@@ -310,31 +311,27 @@ export const generateInvoice = async (
   return result;
 };
 
-export const deleteInvoice = async(
-  clientId:string,
-  timeLogIds:string[],
-)=>{
+export const deleteInvoice = async (clientId: string, timeLogIds: string[]) => {
   const user = await requireUser();
 
   try {
-    const result = await prisma.$transaction(async(tx)=>{
+    const result = await prisma.$transaction(async (tx) => {
       await tx.timeLog.updateMany({
-        where:{
+        where: {
           clientId,
-          userId:user.id,
-           ...(timeLogIds ? { id: { in: timeLogIds } } : {}),
-           status:"INVOICED"
+          userId: user.id,
+          ...(timeLogIds ? { id: { in: timeLogIds } } : {}),
+          status: "INVOICED",
         },
-        data:{
-          status:"UNBILLED"
-        }
-      })
-    })
+        data: {
+          status: "UNBILLED",
+        },
+      });
+    });
 
     await invalidateDashboardCache(user.id);
     return result;
   } catch (error) {
-    throw new Error((error as Error).message)
+    throw new Error((error as Error).message);
   }
-
-}
+};

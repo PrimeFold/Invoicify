@@ -16,7 +16,9 @@ function formatElapsedTime(seconds: number) {
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = seconds % 60;
 
-  return [hours, minutes, remainingSeconds].map((value) => String(value).padStart(2, "0")).join(":");
+  return [hours, minutes, remainingSeconds]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
 }
 
 export function TimeTracker({ clients }: TimeTrackerProps) {
@@ -32,7 +34,10 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
   useEffect(() => {
     if (!isTracking) return;
 
-    const timer = window.setInterval(() => setElapsedSeconds((seconds) => seconds + 1), 1000);
+    const timer = window.setInterval(
+      () => setElapsedSeconds((seconds) => seconds + 1),
+      1000
+    );
     return () => window.clearInterval(timer);
   }, [isTracking]);
 
@@ -71,7 +76,11 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
         setElapsedSeconds(0);
         router.refresh();
       } catch (error) {
-        setError(error instanceof Error ? error.message : "Unable to save the time log.");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Unable to save the time log."
+        );
       }
     });
   }
@@ -82,7 +91,9 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
     <Card className="rounded-lg border-line bg-surface p-4 shadow-none">
       <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="flex w-full items-center gap-3 md:w-auto">
-          <span className={`grid size-9 place-items-center rounded border font-mono text-xs ${isTracking ? "animate-pulse border-status-pending-border bg-status-pending-bg text-status-pending" : "border-line bg-canvas text-txt-muted"}`}>
+          <span
+            className={`grid size-9 place-items-center rounded border font-mono text-xs ${isTracking ? "animate-pulse border-status-pending-border bg-status-pending-bg text-status-pending" : "border-line bg-canvas text-txt-muted"}`}
+          >
             <Clock className="size-4" />
           </span>
           <div className="flex-1 space-y-2">
@@ -99,21 +110,43 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
               disabled={isTracking || isSaving || clients.length === 0}
               className="w-full bg-transparent font-mono text-[10px] text-txt-muted outline-none disabled:opacity-60"
             >
-              <option value="">{clients.length === 0 ? "Add a client before tracking time" : "Select a client"}</option>
-              {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+              <option value="">
+                {clients.length === 0
+                  ? "Add a client before tracking time"
+                  : "Select a client"}
+              </option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name}
+                </option>
+              ))}
             </select>
-            {error && <p className="font-mono text-[10px] text-red-400">{error}</p>}
+            {error && (
+              <p className="font-mono text-[10px] text-red-400">{error}</p>
+            )}
           </div>
         </div>
         <div className="flex w-full items-center justify-between gap-4 border-t border-line pt-3 md:w-auto md:justify-end md:border-t-0 md:pt-0">
-          <span className="font-mono text-2xl font-bold tracking-wider text-txt-primary">{formatElapsedTime(elapsedSeconds)}</span>
+          <span className="font-mono text-2xl font-bold tracking-wider text-txt-primary">
+            {formatElapsedTime(elapsedSeconds)}
+          </span>
           <Button
             type="button"
             disabled={isSaving || (!isTracking && !canStart)}
             onClick={isTracking ? stopTimer : startTimer}
             className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-md px-4 font-mono text-xs ${isTracking ? "border border-red-800/60 bg-red-950/80 text-red-400 hover:bg-red-900/80" : "border border-status-paid-border bg-status-paid-bg text-status-paid hover:bg-status-paid-bg/80"}`}
           >
-            {isSaving ? "Saving…" : isTracking ? <><Square className="size-3.5 fill-red-400" /> Stop Timer</> : <><Play className="size-3.5 fill-status-paid" /> Start Timer</>}
+            {isSaving ? (
+              "Saving…"
+            ) : isTracking ? (
+              <>
+                <Square className="size-3.5 fill-red-400" /> Stop Timer
+              </>
+            ) : (
+              <>
+                <Play className="size-3.5 fill-status-paid" /> Start Timer
+              </>
+            )}
           </Button>
         </div>
       </div>

@@ -13,8 +13,7 @@ export interface Client {
   invoices?: Invoice[];
 }
 
-
-export interface ClientOption{
-  id:string;
-  name:string;
+export interface ClientOption {
+  id: string;
+  name: string;
 }

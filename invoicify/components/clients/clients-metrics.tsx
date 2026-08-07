@@ -14,18 +14,38 @@ export function ClientsMetrics({ metrics }: ClientsMetricsProps) {
     <div className="grid gap-3 sm:grid-cols-3">
       <MetricCard
         label="Active Clients"
-        value={metrics?.activeClients !== undefined ? metrics.activeClients.toString() : "—"}
-        note={metrics ? "Accounts with active billing profiles" : "Awaiting client data"}
+        value={
+          metrics?.activeClients !== undefined
+            ? metrics.activeClients.toString()
+            : "—"
+        }
+        note={
+          metrics
+            ? "Accounts with active billing profiles"
+            : "Awaiting client data"
+        }
       />
       <MetricCard
         label="Avg Hourly Rate"
-        value={metrics?.averageHourlyRate !== undefined ? formatRate(metrics.averageHourlyRate) : "—"}
+        value={
+          metrics?.averageHourlyRate !== undefined
+            ? formatRate(metrics.averageHourlyRate)
+            : "—"
+        }
         note={metrics ? "Across your client list" : "Awaiting client data"}
       />
       <MetricCard
         label="Total Unbilled"
-        value={metrics?.totalUnbilledAmount !== undefined ? formatCurrency(metrics.totalUnbilledAmount) : "—"}
-        note={metrics?.totalUnbilledHours !== undefined ? `${metrics.totalUnbilledHours} hours ready to invoice` : "Available when time-log totals are loaded"}
+        value={
+          metrics?.totalUnbilledAmount !== undefined
+            ? formatCurrency(metrics.totalUnbilledAmount)
+            : "—"
+        }
+        note={
+          metrics?.totalUnbilledHours !== undefined
+            ? `${metrics.totalUnbilledHours} hours ready to invoice`
+            : "Available when time-log totals are loaded"
+        }
         highlight
       />
     </div>
@@ -45,8 +65,12 @@ function MetricCard({
 }) {
   return (
     <div className="rounded-md border border-line bg-canvas p-4 text-left">
-      <span className="font-mono text-xs uppercase tracking-wider text-txt-muted">{label}</span>
-      <p className={`mt-1 font-mono text-xl font-semibold tracking-tight ${highlight ? "text-status-pending" : "text-txt-primary"}`}>
+      <span className="font-mono text-xs uppercase tracking-wider text-txt-muted">
+        {label}
+      </span>
+      <p
+        className={`mt-1 font-mono text-xl font-semibold tracking-tight ${highlight ? "text-status-pending" : "text-txt-primary"}`}
+      >
         {value}
       </p>
       <p className="mt-1 font-mono text-xs text-txt-secondary">{note}</p>

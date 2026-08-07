@@ -6,7 +6,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-canvas px-4">
       <div className="mb-6 flex flex-col items-center gap-2">
-        <Link href="/" className="flex items-center gap-2 font-mono text-base font-semibold text-txt-primary">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-mono text-base font-semibold text-txt-primary"
+        >
           <span className="grid size-9 place-items-center rounded-md bg-surface border border-line text-txt-primary">
             <ReceiptText className="size-5" />
           </span>
@@ -20,6 +23,3 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-
-

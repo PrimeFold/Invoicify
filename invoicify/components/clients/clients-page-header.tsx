@@ -9,7 +9,9 @@ export function ClientsPageHeader({ clientCount }: ClientsPageHeaderProps) {
     <div className="flex flex-col justify-between gap-4 border-b border-line pb-5 sm:flex-row sm:items-center">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold tracking-tight text-txt-primary">Clients</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-txt-primary">
+            Clients
+          </h1>
           <span className="rounded border border-line bg-surface px-2 py-0.5 font-mono text-xs text-txt-muted">
             [{clientCount ?? "—"}]
           </span>

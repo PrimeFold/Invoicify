@@ -1,24 +1,36 @@
-import { getInvoices, getInvoiceSummary } from "@/app/actions/invoices";
-import { InvoiceMetrics, type InvoiceMetrics as InvoiceMetricsData } from "@/components/invoices/invoice-metrics";
+import { getInvoiceSummary, getInvoices } from "@/app/actions/invoices";
+import {
+  InvoiceMetrics,
+  type InvoiceMetrics as InvoiceMetricsData,
+} from "@/components/invoices/invoice-metrics";
 import { InvoicesPageHeader } from "@/components/invoices/invoices-page-header";
-import { InvoicesTable, type InvoiceTableRow } from "@/components/invoices/invoices-table";
+import {
+  InvoicesTable,
+  type InvoiceTableRow,
+} from "@/components/invoices/invoices-table";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
 type InvoicesPageProps = {
   searchParams: Promise<{ page?: string | string[] }>;
 };
 
-export default async function InvoicesPage({ searchParams }: InvoicesPageProps) {
+export default async function InvoicesPage({
+  searchParams,
+}: InvoicesPageProps) {
   const params = await searchParams;
-  const requestedPage = Number(Array.isArray(params.page) ? params.page[0] : params.page) || 1;
+  const requestedPage =
+    Number(Array.isArray(params.page) ? params.page[0] : params.page) || 1;
   const [initialInvoiceResult, metrics] = await Promise.all([
     getInvoices(requestedPage),
     getInvoiceSummary(),
   ]);
-  
+
   let invoiceResult = initialInvoiceResult;
 
-  if (invoiceResult.totalPages > 0 && invoiceResult.page > invoiceResult.totalPages) {
+  if (
+    invoiceResult.totalPages > 0 &&
+    invoiceResult.page > invoiceResult.totalPages
+  ) {
     invoiceResult = await getInvoices(invoiceResult.totalPages);
   }
 
