@@ -1,6 +1,7 @@
 "use server";
 import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
+import { getRedis } from "@/lib/redis";
 import type { PaginatedResult } from "@/types/pagination";
 import type { TimeLog } from "@/types/timeLog";
 import { invalidateDashboardCache } from "./dashboard";
@@ -15,6 +16,60 @@ type CreateTimeLogInput = {
   durationMinutes: number;
   status: "UNBILLED" | "INVOICED";
 };
+
+export const getUnbilledTimeLogs = async (clientId: string) => {
+  const user = await requireUser();
+  const redis = getRedis();
+  const key = `unbilled-timelogs:${clientId}`;
+  const cache = await redis.get(key);
+  if (cache) {
+    return;
+  }
+  try {
+    const timeLogs = await prisma.timeLog.findMany({
+      where: {
+        userId: user.id,
+        clientId,
+        status: "UNBILLED",
+      },
+      select: {
+        id: true,
+        description: true,
+        durationMinutes: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+
+    await redis.set(key, JSON.stringify(timeLogs), "EX", 120);
+    return timeLogs;
+  } catch (error) {
+    throw new Error((error as Error).message);
+  }
+};
+
+export const getUnbilledLogTimeLogCount = async (clientId:string) => {
+  const user = await requireUser();
+  const redis = getRedis();
+  const key = `timelog-count:${clientId}`
+  const cache = await redis.get(key);
+  if (cache) {
+    return;
+  }
+  try {
+    const count = await prisma.timeLog.count({
+      where: {
+        userId: user.id,
+        clientId,
+        status:"UNBILLED"
+      },
+    })
+    return count;
+  } catch (error) {
+    throw new Error((error as Error).message) || "Couldn't fetch count of the logs.."
+  }
+}
+
 
 export const createTimeLog = async (data: CreateTimeLogInput) => {
   try {

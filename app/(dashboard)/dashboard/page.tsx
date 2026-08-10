@@ -194,30 +194,30 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* 1. Header Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line/60 pb-6">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-txt-primary">
+          <h1 className="apple-heading text-txt-primary">
             Dashboard
           </h1>
-          <p className="text-xs font-mono text-txt-secondary mt-1">
-            Active client statuses, unbilled time logs, and financial telemetry.
+          <p className="text-xs text-txt-secondary mt-1 tracking-tight">
+            Overview of active clients, unbilled time, and revenue metrics.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Link href="/timelogs">
             <Button
               variant="outline"
-              className="bg-surface border-line text-txt-primary hover:bg-surface-hover font-mono text-xs h-9 px-3 rounded-md cursor-pointer inline-flex items-center gap-1.5"
+              className="bg-surface/80 border-line/80 text-txt-primary hover:bg-surface-hover font-sans text-xs h-9 px-3.5 rounded-xl cursor-pointer inline-flex items-center gap-2 active-press shadow-xs"
             >
               <Clock className="size-3.5 text-txt-muted" />
               Log Hours
             </Button>
           </Link>
           <Link href="/invoices">
-            <Button className="bg-txt-primary text-canvas hover:opacity-90 font-mono text-xs h-9 px-3 rounded-md cursor-pointer inline-flex items-center gap-1.5">
+            <Button className="bg-primary text-primary-foreground hover:opacity-90 font-sans text-xs h-9 px-3.5 rounded-xl cursor-pointer inline-flex items-center gap-2 active-press shadow-sm">
               <Plus className="size-3.5" />
               New Invoice
             </Button>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
       </div>
 
       {/* 2. Top Metric Cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Unbilled Revenue"
           value={formatCurrency(totalUnbilledAmount)}
@@ -249,7 +249,7 @@ export default function DashboardPage() {
               0
             )
           )}
-          subtext={`${unpaidInvoices.length} invoices action required`}
+          subtext={`${unpaidInvoices.length} invoices require action`}
           status="pending"
           icon={AlertCircle}
         />
@@ -262,46 +262,46 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* 3. Middle Section: Active Clients Telemetry + Action Needed Invoices */}
+      {/* 3. Middle Section: Active Clients + Action Needed Invoices */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Active Client Status Table (2 Cols) */}
-        <Card className="lg:col-span-2 gap-0 rounded-lg border-line bg-surface py-0 shadow-none text-left">
-          <CardHeader className="p-5 border-b border-line flex-row items-center justify-between">
+        {/* Active Client Table (2 Cols) */}
+        <Card className="lg:col-span-2 gap-0 rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left overflow-hidden">
+          <CardHeader className="p-5 border-b border-line/60 flex-row items-center justify-between">
             <div>
-              <CardTitle className="font-mono text-xs text-txt-muted uppercase tracking-wider">
-                CLIENT_TELEMETRY // ACTIVE ACCOUNTS
+              <CardTitle className="apple-label-caps text-[10px]">
+                Active Client Accounts
               </CardTitle>
               <CardDescription className="text-sm font-semibold text-txt-primary mt-1">
-                Current Client Work & Unbilled Accruals
+                Current Client Work & Accrued Hours
               </CardDescription>
             </div>
             <Link
               href="/clients"
-              className="font-mono text-xs text-txt-muted hover:text-txt-primary inline-flex items-center gap-1"
+              className="text-xs text-txt-muted hover:text-primary transition-colors inline-flex items-center gap-1 active-press"
             >
-              View All <ChevronRight className="size-3" />
+              View All <ChevronRight className="size-3.5" />
             </Link>
           </CardHeader>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse font-mono text-xs">
+            <table className="w-full text-left border-collapse font-sans text-xs">
               <thead>
-                <tr className="border-b border-line bg-canvas/40 text-[10px] text-txt-muted uppercase tracking-wider">
-                  <th className="pt-1.5 pb-2.5 px-5">Client</th>
-                  <th className="pt-1.5 pb-2.5 px-4">Rate</th>
-                  <th className="pt-1.5 pb-2.5 px-4">Unbilled Time</th>
-                  <th className="pt-1.5 pb-2.5 px-4">Unbilled Total</th>
-                  <th className="pt-1.5 pb-2.5 px-5 text-right">Action</th>
+                <tr className="border-b border-line/60 bg-canvas/40 apple-label-caps text-[9px] text-txt-muted">
+                  <th className="pt-2.5 pb-2.5 px-5">Client</th>
+                  <th className="pt-2.5 pb-2.5 px-4">Rate</th>
+                  <th className="pt-2.5 pb-2.5 px-4">Unbilled Time</th>
+                  <th className="pt-2.5 pb-2.5 px-4">Unbilled Total</th>
+                  <th className="pt-2.5 pb-2.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line/60">
+              <tbody className="divide-y divide-line/40">
                 {isLoading ? (
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-5 py-10 text-center text-txt-muted"
+                      className="px-5 py-10 text-center text-txt-muted font-sans"
                     >
-                      Loading client telemetry…
+                      Loading client details…
                     </td>
                   </tr>
                 ) : activeClients.length === 0 ? (
@@ -312,7 +312,7 @@ export default function DashboardPage() {
                           ? "No client data available"
                           : "No clients yet"}
                       </p>
-                      <p className="mt-1 text-[10px] text-txt-muted">
+                      <p className="mt-1 text-xs text-txt-muted">
                         {hasLoadError
                           ? "Try refreshing the dashboard."
                           : "Add a client to start tracking billable work."}
@@ -323,10 +323,10 @@ export default function DashboardPage() {
                   activeClients.map((client) => (
                     <tr
                       key={client.id}
-                      className="hover:bg-surface-hover/50 transition-colors"
+                      className="hover:bg-surface-hover/60 active-press transition-colors"
                     >
                       <td className="py-3 px-5">
-                        <p className="font-sans font-medium text-txt-primary text-xs">
+                        <p className="font-sans font-semibold text-txt-primary text-xs tracking-tight">
                           {client.name}
                         </p>
                         <p className="text-[10px] text-txt-muted">
@@ -335,17 +335,17 @@ export default function DashboardPage() {
                             : "No logged work yet"}
                         </p>
                       </td>
-                      <td className="py-3 px-4 text-txt-secondary">
+                      <td className="py-3 px-4 text-txt-secondary font-sans text-xs">
                         ${client.hourlyRate.toFixed(2)}/hr
                       </td>
-                      <td className="py-3 px-4 text-txt-secondary">
+                      <td className="py-3 px-4 text-txt-secondary font-sans text-xs">
                         {client.unbilledHours > 0 ? (
                           `${client.unbilledHours} hrs`
                         ) : (
                           <span className="text-txt-muted">0 hrs</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 font-semibold">
+                      <td className="py-3 px-4 font-sans text-xs font-semibold">
                         {client.unbilledAmount > 0 ? (
                           <span className="text-status-pending">
                             {formatCurrency(client.unbilledAmount)}
@@ -360,7 +360,7 @@ export default function DashboardPage() {
                             variant="ghost"
                             size="sm"
                             disabled={client.unbilledHours === 0}
-                            className="h-7 text-[10px] px-2 text-txt-secondary hover:text-txt-primary border border-line bg-canvas hover:bg-surface-hover disabled:opacity-30"
+                            className="h-7 text-[11px] px-2.5 text-txt-secondary hover:text-txt-primary border border-line/60 bg-canvas/60 hover:bg-surface-hover active-press disabled:opacity-30 rounded-lg"
                           >
                             Bill Hours
                           </Button>
@@ -374,38 +374,38 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Action Needed: Pending/Overdue Invoices (1 Col) */}
-        <Card className="rounded-lg border-line bg-surface py-0 shadow-none text-left flex flex-col justify-between">
+        {/* Pending Invoices (1 Col) */}
+        <Card className="rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left flex flex-col justify-between overflow-hidden">
           <div>
-            <CardHeader className="p-5 border-b border-line flex-row items-center justify-between">
+            <CardHeader className="p-5 border-b border-line/60 flex-row items-center justify-between">
               <div>
-                <CardTitle className="font-mono text-xs text-txt-muted uppercase tracking-wider">
-                  ACTION_REQUIRED
+                <CardTitle className="apple-label-caps text-[10px]">
+                  Action Required
                 </CardTitle>
                 <CardDescription className="text-sm font-semibold text-txt-primary mt-1">
                   Unpaid Invoices
                 </CardDescription>
               </div>
-              <span className="font-mono text-[10px] px-2 py-0.5 rounded border border-status-pending-border bg-status-pending-bg text-status-pending font-semibold">
-                {unpaidInvoices.length} PENDING
+              <span className="font-sans text-[10px] px-2.5 py-0.5 rounded-full border border-status-pending-border bg-status-pending-bg text-status-pending font-medium shadow-2xs">
+                {unpaidInvoices.length} Pending
               </span>
             </CardHeader>
 
-            <div className="p-5 space-y-3 font-mono text-xs">
+            <div className="p-5 space-y-3 text-xs">
               {isLoading ? (
-                <p className="text-txt-muted">Loading invoices…</p>
+                <p className="text-txt-muted font-sans">Loading invoices…</p>
               ) : unpaidInvoices.length > 0 ? (
                 unpaidInvoices.map((inv) => (
                   <div
                     key={inv.id}
-                    className="p-3 rounded border border-line bg-canvas flex items-center justify-between"
+                    className="p-3 rounded-xl border border-line/60 bg-canvas/60 flex items-center justify-between active-press hover:border-line"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-txt-primary">
+                        <span className="font-sans text-xs font-semibold text-txt-primary">
                           {inv.id}
                         </span>
-                        <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-status-pending-bg text-status-pending border border-status-pending-border">
+                        <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-status-pending-bg text-status-pending border border-status-pending-border">
                           {inv.status}
                         </span>
                       </div>
@@ -418,7 +418,7 @@ export default function DashboardPage() {
                         }).format(new Date(inv.createdAt))}
                       </p>
                     </div>
-                    <span className="font-semibold text-txt-primary">
+                    <span className="font-sans text-xs font-semibold text-txt-primary">
                       {formatCurrency(inv.totalAmount)}
                     </span>
                   </div>
@@ -430,21 +430,21 @@ export default function DashboardPage() {
                       ? "No invoice data available"
                       : "No unpaid invoices"}
                   </p>
-                  <p className="mt-1 text-[10px] text-txt-muted">
+                  <p className="mt-1 text-xs text-txt-muted">
                     {hasLoadError
                       ? "Try refreshing the dashboard."
-                      : "You&apos;re all caught up."}
+                      : "You're all caught up."}
                   </p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="p-4 border-t border-line bg-canvas/30">
+          <div className="p-4 border-t border-line/60 bg-canvas/30">
             <Link href="/invoices">
               <Button
                 variant="outline"
-                className="w-full bg-surface border-line text-txt-primary hover:bg-surface-hover font-mono text-xs h-9 justify-between cursor-pointer"
+                className="w-full bg-surface/80 border-line/80 text-txt-primary hover:bg-surface-hover font-sans text-xs h-9 justify-between cursor-pointer active-press rounded-xl"
               >
                 <span>Manage Invoices</span>
                 <ArrowUpRight className="size-3.5 text-txt-muted" />
@@ -455,22 +455,22 @@ export default function DashboardPage() {
       </div>
 
       {/* 4. Bottom Section: Revenue Chart */}
-      <Card className="rounded-lg border-line bg-surface py-0 shadow-none text-left">
-        <CardHeader className="p-5 border-b border-line flex-row items-center justify-between">
+      <Card className="rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left overflow-hidden">
+        <CardHeader className="p-5 border-b border-line/60 flex-row items-center justify-between">
           <div>
-            <CardTitle className="font-mono text-xs text-txt-muted uppercase tracking-wider">
-              CASHFLOW_LEDGER // 6-MONTH HISTORY
+            <CardTitle className="apple-label-caps text-[10px]">
+              Revenue History
             </CardTitle>
             <CardDescription className="text-sm font-semibold text-txt-primary mt-1">
-              Collected vs. Unbilled Revenue Trajectory
+              Collected vs. Unbilled Trajectory (6 Months)
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono">
-            <span className="flex items-center gap-1.5 rounded border border-line bg-canvas px-2 py-1 text-txt-secondary">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="flex items-center gap-1.5 rounded-full border border-line/60 bg-canvas/60 px-2.5 py-1 text-txt-secondary text-[11px]">
               <span className="size-1.5 rounded-full bg-status-paid shadow-[0_0_8px_var(--status-paid)]" />{" "}
               Paid
             </span>
-            <span className="flex items-center gap-1.5 rounded border border-line bg-canvas px-2 py-1 text-txt-secondary">
+            <span className="flex items-center gap-1.5 rounded-full border border-line/60 bg-canvas/60 px-2.5 py-1 text-txt-secondary text-[11px]">
               <span className="size-1.5 rounded-full bg-status-pending shadow-[0_0_8px_var(--status-pending)]" />{" "}
               Unbilled
             </span>
@@ -479,8 +479,8 @@ export default function DashboardPage() {
 
         <CardContent className="p-5 pt-6">
           {isLoading ? (
-            <div className="grid h-[240px] place-items-center font-mono text-xs text-txt-muted">
-              Loading cashflow data…
+            <div className="grid h-[240px] place-items-center font-sans text-xs text-txt-muted">
+              Loading revenue data…
             </div>
           ) : hasChartData ? (
             <ChartContainer config={chartConfig} className="h-[240px] w-full">
@@ -506,7 +506,7 @@ export default function DashboardPage() {
                       <stop
                         offset="100%"
                         stopColor="var(--status-paid)"
-                        stopOpacity={0.72}
+                        stopOpacity={0.75}
                       />
                     </linearGradient>
                     <linearGradient
@@ -524,7 +524,7 @@ export default function DashboardPage() {
                       <stop
                         offset="100%"
                         stopColor="var(--status-pending)"
-                        stopOpacity={0.72}
+                        stopOpacity={0.75}
                       />
                     </linearGradient>
                   </defs>
@@ -540,7 +540,7 @@ export default function DashboardPage() {
                     tickMargin={12}
                     stroke="var(--text-muted)"
                     fontSize={11}
-                    fontFamily="monospace"
+                    fontFamily="sans-serif"
                   />
                   <YAxis
                     tickLine={false}
@@ -548,7 +548,7 @@ export default function DashboardPage() {
                     tickMargin={8}
                     stroke="var(--text-muted)"
                     fontSize={11}
-                    fontFamily="monospace"
+                    fontFamily="sans-serif"
                     tickFormatter={(value) => `$${value / 1000}k`}
                   />
                   <ChartTooltip
@@ -558,13 +558,13 @@ export default function DashboardPage() {
                   <Bar
                     dataKey="collected"
                     fill="url(#collected-bar-gradient)"
-                    radius={[5, 5, 1, 1]}
+                    radius={[6, 6, 2, 2]}
                     maxBarSize={34}
                   />
                   <Bar
                     dataKey="unbilled"
                     fill="url(#unbilled-bar-gradient)"
-                    radius={[5, 5, 1, 1]}
+                    radius={[6, 6, 2, 2]}
                     maxBarSize={34}
                   />
                 </BarChart>
@@ -576,9 +576,9 @@ export default function DashboardPage() {
                 <p className="font-sans text-sm font-medium text-txt-primary">
                   {hasLoadError
                     ? "No cashflow data available"
-                    : "No cashflow data yet"}
+                    : "No revenue data yet"}
                 </p>
-                <p className="mt-1 font-mono text-xs text-txt-muted">
+                <p className="mt-1 text-xs text-txt-muted">
                   {hasLoadError
                     ? "Try refreshing the dashboard."
                     : "Log time or create an invoice to populate this chart."}
@@ -612,21 +612,21 @@ function MetricCard({
   };
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-4 text-left">
+    <div className="glass-card p-4.5 text-left active-press">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-xs text-txt-muted uppercase tracking-wider">
+        <span className="apple-label-caps text-[10px]">
           {label}
         </span>
-        <span className="grid size-7 place-items-center rounded bg-canvas border border-line text-txt-muted">
+        <span className="grid size-7 place-items-center rounded-lg bg-canvas/60 border border-line/60 text-txt-muted shadow-2xs">
           <Icon className="size-3.5" />
         </span>
       </div>
       <p
-        className={`mt-2 text-2xl font-semibold font-mono tracking-tight ${statusStyles[status]}`}
+        className={`mt-2 text-2xl font-bold font-sans tracking-tight ${statusStyles[status]}`}
       >
         {value}
       </p>
-      <p className="mt-1 text-xs font-mono text-txt-secondary">{subtext}</p>
+      <p className="mt-1 text-xs text-txt-secondary tracking-tight">{subtext}</p>
     </div>
   );
 }

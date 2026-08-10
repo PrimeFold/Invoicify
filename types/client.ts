@@ -1,6 +1,6 @@
-import { Invoice } from "./invoice";
-import { TimeLog } from "./timeLog";
-import { User } from "./user";
+import type { Invoice } from "./invoice";
+import type { TimeLog } from "./timeLog";
+import type { User } from "./user";
 
 export interface Client {
   id?: string;

@@ -7,14 +7,13 @@ import {
   Users,
   Clock3,
   ReceiptText,
-  Terminal,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
 
 const sections = [
   {
-    title: "MAIN",
+    title: "Main",
     items: [
       {
         href: "/dashboard",
@@ -32,12 +31,12 @@ const sections = [
         href: "/timelogs",
         label: "Time Logs",
         icon: Clock3,
-        badge: "LIVE",
+        badge: "Live",
       },
     ],
   },
   {
-    title: "BILLING",
+    title: "Billing",
     items: [
       {
         href: "/invoices",
@@ -53,16 +52,15 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 shrink-0 border-r border-line bg-canvas">
-      <div className="sticky top-0 flex h-screen flex-col justify-between p-4">
-        {/* Top Header & Brand */}
-        <div className="space-y-6">
-          {/* Navigation Links */}
+    <aside className="w-64 shrink-0 border-r border-line/70 bg-canvas/40 backdrop-blur-md">
+      <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col justify-between p-4">
+        {/* Navigation Links */}
+        <div className="space-y-6 pt-2">
           <nav className="space-y-6">
             {sections.map((section) => (
               <div key={section.title}>
-                <p className="mb-2 px-2.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-txt-muted">
-                  [{section.title}]
+                <p className="mb-2 px-3 apple-label-caps text-[10px]">
+                  {section.title}
                 </p>
 
                 <div className="space-y-1">
@@ -82,33 +80,33 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Bottom Section: Workspace Info + User Profile */}
-        <div className="space-y-3 pt-4 border-t border-line">
-          {/* Engine Status Widget */}
-          <div className="rounded-md border border-line bg-canvas/60 p-3 font-mono text-[11px]">
-            <div className="flex items-center justify-between text-txt-muted mb-1">
-              <span className="uppercase tracking-wider">ENGINE_STATUS</span>
-              <span className="inline-flex items-center gap-1 text-status-paid">
-                <span className="h-1.5 w-1.5 rounded-full bg-status-paid animate-pulse" />
-                ONLINE
+        {/* Bottom Section: Workspace Status + User Profile */}
+        <div className="space-y-3 pt-4 border-t border-line/60">
+          {/* System Status Widget */}
+          <div className="glass-card p-3 bg-surface/60 backdrop-blur-sm">
+            <div className="flex items-center justify-between text-txt-muted">
+              <span className="text-[11px] font-medium text-txt-secondary">System Status</span>
+              <span className="inline-flex items-center gap-1.5 text-status-paid font-medium text-[11px]">
+                <span className="relative flex size-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-paid opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-status-paid" />
+                </span>
+                Operational
               </span>
             </div>
-            <p className="text-txt-secondary text-[10px] truncate">
-              Database: Prisma PostgreSQL
-            </p>
           </div>
 
           {/* User Account Bar */}
-          <div className="flex items-center justify-between p-2 rounded-md hover:bg-surface-hover/60 transition-colors">
+          <div className="flex items-center justify-between p-2 rounded-xl hover:bg-surface-hover/80 active-press transition-colors border border-transparent hover:border-line/60">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="grid size-7 shrink-0 place-items-center rounded bg-canvas border border-line font-mono text-xs font-semibold text-txt-primary">
+              <div className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/10 border border-primary/20 font-sans text-xs font-semibold text-primary shadow-xs">
                 AR
               </div>
               <div className="min-w-0">
                 <p className="font-sans text-xs font-medium text-txt-primary truncate">
                   Aditya Raj
                 </p>
-                <p className="font-mono text-[10px] text-txt-muted truncate">
+                <p className="font-sans text-[10px] text-txt-muted truncate">
                   aditya@invoicify.dev
                 </p>
               </div>
@@ -117,7 +115,7 @@ export default function Sidebar() {
             <button
               type="button"
               aria-label="Sign out"
-              className="p-1.5 rounded text-txt-muted hover:text-txt-primary hover:bg-canvas border border-transparent hover:border-line transition-all"
+              className="p-1.5 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-surface/80 active-press border border-transparent hover:border-line/60 transition-all"
             >
               <LogOut className="size-3.5" />
             </button>
@@ -145,15 +143,15 @@ function NavItem({
     <Link
       href={href}
       className={[
-        "group relative flex items-center justify-between rounded-md px-2.5 py-2 font-mono text-xs transition-all",
+        "group relative flex items-center justify-between rounded-xl px-3 py-2.5 font-sans text-xs transition-all active-press",
         active
-          ? "bg-canvas text-txt-primary border border-line shadow-xs font-semibold"
-          : "text-txt-secondary hover:bg-surface-hover hover:text-txt-primary border border-transparent",
+          ? "bg-surface text-txt-primary border border-line shadow-xs font-semibold"
+          : "text-txt-secondary hover:bg-surface-hover/70 hover:text-txt-primary border border-transparent",
       ].join(" ")}
     >
       {/* Active Indicator Accent Line */}
       {active && (
-        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-txt-primary" />
+        <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-primary shadow-xs" />
       )}
 
       <div className="flex items-center gap-2.5">
@@ -161,15 +159,15 @@ function NavItem({
           className={[
             "size-4 transition-colors",
             active
-              ? "text-txt-primary"
+              ? "text-primary"
               : "text-txt-muted group-hover:text-txt-primary",
           ].join(" ")}
         />
-        <span>{label}</span>
+        <span className="tracking-tight">{label}</span>
       </div>
 
       {badge ? (
-        <span className="font-mono text-[9px] px-1.5 py-0.2 rounded border border-status-pending-border bg-status-pending-bg text-status-pending font-normal">
+        <span className="font-sans text-[10px] px-2 py-0.5 rounded-full border border-status-pending-border bg-status-pending-bg text-status-pending font-medium shadow-2xs">
           {badge}
         </span>
       ) : null}

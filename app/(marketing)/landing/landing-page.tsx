@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Check, Info, ReceiptText, Terminal } from "lucide-react";
+import { ArrowRight, Check, Info, ReceiptText, Sparkles } from "lucide-react";
 import { SiGithub } from "react-icons/si";
 import {
   Card,
@@ -22,13 +22,12 @@ export function Brand() {
   return (
     <Link
       href="/"
-      className="flex items-center gap-2.5 font-mono text-sm font-semibold tracking-tight text-txt-primary"
+      className="flex items-center gap-2.5 font-sans text-sm font-semibold tracking-tight text-txt-primary active-press"
     >
-      <span className="grid size-8 place-items-center rounded-md bg-surface border border-line text-txt-primary">
+      <span className="grid size-8 place-items-center rounded-lg bg-primary/10 border border-primary/20 text-primary shadow-xs">
         <ReceiptText className="size-4" aria-hidden="true" />
       </span>
-      Invoicify{" "}
-      <span className="text-txt-muted text-xs font-normal">[v1.0]</span>
+      <span>Invoicify</span>
     </Link>
   );
 }
@@ -47,10 +46,10 @@ export function CtaLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center justify-center h-11 rounded-md px-5 text-sm font-medium transition-all cursor-pointer ${
+      className={`inline-flex items-center justify-center h-11 rounded-xl px-5 text-sm font-medium transition-all active-press cursor-pointer shadow-sm ${
         isPrimary
-          ? "bg-txt-primary text-canvas hover:opacity-90"
-          : "bg-surface text-txt-primary border border-line hover:bg-surface-hover"
+          ? "bg-primary text-primary-foreground hover:opacity-90 shadow-md shadow-primary/20"
+          : "bg-surface/80 text-txt-primary border border-line/80 hover:bg-surface-hover backdrop-blur-sm"
       }`}
     >
       {children}
@@ -70,20 +69,20 @@ export function FeatureCard({
   tag: string;
 }) {
   return (
-    <Card className="gap-0 rounded-lg border-line bg-surface py-0 shadow-none text-left">
+    <Card className="glass-card gap-0 text-left active-press overflow-hidden">
       <CardHeader className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <span className="grid size-9 place-items-center rounded-md border border-line bg-canvas text-txt-primary">
+          <span className="grid size-9 place-items-center rounded-xl border border-line/60 bg-canvas/60 text-primary shadow-2xs">
             <Icon className="size-4.5" aria-hidden="true" />
           </span>
-          <span className="font-mono text-[10px] text-txt-muted tracking-wider uppercase border border-line px-2 py-0.5 rounded bg-canvas">
+          <span className="apple-label-caps text-[9px] border border-line/60 px-2.5 py-0.5 rounded-full bg-canvas/60 font-sans">
             {tag}
           </span>
         </div>
-        <CardTitle className="font-semibold text-txt-primary text-base">
+        <CardTitle className="font-semibold text-txt-primary text-base tracking-tight">
           {title}
         </CardTitle>
-        <CardDescription className="leading-6 text-txt-secondary text-sm mt-1.5">
+        <CardDescription className="leading-relaxed text-txt-secondary text-xs mt-1.5 font-sans">
           {description}
         </CardDescription>
       </CardHeader>
@@ -103,8 +102,8 @@ export function Metric({
   tooltip?: string;
 }) {
   return (
-    <div className="rounded-md border border-line bg-canvas p-4">
-      <div className="flex items-center gap-1.5 text-xs font-mono text-txt-muted uppercase">
+    <div className="glass-card p-4 text-left active-press">
+      <div className="flex items-center gap-1.5 apple-label-caps text-[10px]">
         <span>{label}</span>
         {tooltip && (
           <Tooltip>
@@ -114,44 +113,44 @@ export function Metric({
                 aria-hidden="true"
               />
             </TooltipTrigger>
-            <TooltipContent className="bg-surface border-line text-txt-primary font-sans text-xs">
+            <TooltipContent className="glass-panel text-txt-primary font-sans text-xs p-2 shadow-lg">
               {tooltip}
             </TooltipContent>
           </Tooltip>
         )}
       </div>
-      <p className="mt-1.5 text-2xl font-semibold font-mono tracking-tight text-txt-primary">
+      <p className="mt-1.5 text-2xl font-bold font-sans tracking-tight text-txt-primary">
         {value}
       </p>
-      <p className="mt-1 text-xs font-mono text-txt-secondary">{note}</p>
+      <p className="mt-1 text-xs text-txt-secondary tracking-tight">{note}</p>
     </div>
   );
 }
 
 export function InvoicePreview() {
   return (
-    <Card className="relative mx-auto mt-12 w-full max-w-4xl gap-0 rounded-lg border-line bg-surface py-0 text-left shadow-2xl">
-      <CardHeader className="flex-row items-center justify-between px-5 py-4 border-b border-line">
+    <Card className="relative mx-auto mt-12 w-full max-w-4xl gap-0 glass-panel text-left shadow-2xl overflow-hidden border-line/80">
+      <CardHeader className="flex-row items-center justify-between px-6 py-4.5 border-b border-line/60 bg-canvas/30">
         <div className="flex items-center gap-3">
-          <span className="grid size-8 place-items-center rounded bg-canvas border border-line text-txt-primary font-mono text-xs">
+          <span className="grid size-8 place-items-center rounded-xl bg-canvas border border-line/60 text-primary font-sans text-xs font-semibold shadow-2xs">
             01
           </span>
           <div>
-            <p className="text-sm font-medium font-mono text-txt-primary">
-              INVOICE_OVERVIEW // JUL-2026
+            <p className="text-xs font-semibold font-sans text-txt-primary tracking-tight">
+              Invoice Summary — July 2026
             </p>
-            <p className="text-xs text-txt-muted font-mono">
-              USER_ID: usr_89f3a1
+            <p className="text-[10px] text-txt-muted font-sans">
+              Client Account Overview
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-status-paid-bg text-status-paid border border-status-paid-border">
-          <span className="h-1.5 w-1.5 rounded-full bg-status-paid" />
-          ACTIVE_LEDGER
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-status-paid-bg text-status-paid border border-status-paid-border shadow-2xs">
+          <span className="h-1.5 w-1.5 rounded-full bg-status-paid animate-pulse" />
+          Active Ledger
         </span>
       </CardHeader>
 
-      <CardContent className="grid gap-3 p-5 sm:grid-cols-3 border-b border-line">
+      <CardContent className="grid gap-3 p-6 sm:grid-cols-3 border-b border-line/60">
         <Metric
           label="Unbilled Revenue"
           value="$2,840.00"
@@ -170,42 +169,42 @@ export function InvoicePreview() {
         />
       </CardContent>
 
-      <CardContent className="p-5">
-        <div className="rounded-md border border-line bg-canvas p-4">
-          <div className="mb-3 flex items-center justify-between text-xs font-mono">
-            <span className="text-txt-secondary uppercase tracking-wider">
+      <CardContent className="p-6">
+        <div className="rounded-xl border border-line/60 bg-canvas/40 p-4">
+          <div className="mb-3 flex items-center justify-between text-xs font-sans">
+            <span className="apple-label-caps text-[9px]">
               Unbilled Time Logs
             </span>
-            <span className="text-txt-muted">Client: Acme Corp ($80/hr)</span>
+            <span className="text-txt-muted text-[11px]">Client: Acme Corp ($80/hr)</span>
           </div>
           <div className="space-y-2.5">
             {[
               {
-                title: "Next.js Route Handlers & PDFKit Integration",
+                title: "Route Handlers & PDF Generator Integration",
                 time: "06:30:00",
                 cost: "$520.00",
               },
               {
-                title: "Prisma $transaction pipeline & Schema Migration",
+                title: "Transaction Pipeline & Schema Optimization",
                 time: "04:15:00",
                 cost: "$340.00",
               },
               {
-                title: "Recharts Dashboard & Metric Calculation",
+                title: "Dashboard Analytics & Financial Metrics",
                 time: "02:00:00",
                 cost: "$160.00",
               },
             ].map((entry) => (
               <div
                 key={entry.title}
-                className="flex items-center justify-between text-xs font-mono border-b border-line/50 pb-2 last:border-0 last:pb-0"
+                className="flex items-center justify-between text-xs border-b border-line/40 pb-2.5 last:border-0 last:pb-0"
               >
-                <span className="text-txt-secondary truncate max-w-[280px] sm:max-w-none">
+                <span className="text-txt-secondary font-sans font-medium truncate max-w-[280px] sm:max-w-none">
                   {entry.title}
                 </span>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 font-sans text-[11px]">
                   <span className="text-txt-muted">{entry.time}</span>
-                  <span className="text-txt-primary font-medium">
+                  <span className="text-txt-primary font-semibold">
                     {entry.cost}
                   </span>
                 </div>
@@ -221,25 +220,25 @@ export function InvoicePreview() {
 export function LandingPage() {
   return (
     <TooltipProvider>
-      <main className="min-h-screen bg-canvas text-txt-primary antialiased">
+      <main className="min-h-screen bg-canvas text-txt-primary antialiased selection:bg-primary/20">
         <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="py-16 text-center sm:py-20">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-line bg-surface text-xs font-mono text-txt-secondary">
-              <Terminal
-                className="size-3.5 text-txt-primary"
+          <div className="py-16 text-center sm:py-24">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-line/80 bg-surface/80 text-xs font-medium text-txt-secondary backdrop-blur-md shadow-2xs">
+              <Sparkles
+                className="size-3.5 text-primary"
                 aria-hidden="true"
               />
-              DEVELOPER-FIRST INVOICING ENGINE
+              Modern Fluid Invoicing Platform
             </span>
 
-            <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-balance sm:text-6xl text-txt-primary">
+            <h1 className="mx-auto mt-6 max-w-4xl apple-display text-balance text-txt-primary">
               Turn active work hours into{" "}
-              <span className="text-txt-muted">vector-perfect invoices.</span>
+              <span className="text-txt-muted font-normal">polished, professional invoices.</span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-txt-secondary sm:text-lg">
-              Log billable hours, track client rates, and stream server-side
-              vector PDFs directly with Next.js, Prisma, and PostgreSQL.
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-txt-secondary sm:text-lg tracking-tight">
+              Seamlessly log billable hours, track client rates, and generate beautiful
+              PDF invoices with zero latency.
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -259,13 +258,13 @@ export function LandingPage() {
             <InvoicePreview />
           </div>
 
-          <section id="features" className="py-16 border-t border-line">
-            <div className="mx-auto max-w-2xl text-center mb-10">
-              <p className="text-xs font-mono text-txt-muted uppercase tracking-wider">
-                [ SYSTEM ARCHITECTURE ]
+          <section id="features" className="py-20 border-t border-line/60">
+            <div className="mx-auto max-w-2xl text-center mb-12">
+              <p className="apple-label-caps text-[10px]">
+                Platform Architecture
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-txt-primary sm:text-3xl">
-                Engineered for speed and data accuracy.
+              <h2 className="mt-2 apple-heading text-txt-primary">
+                Engineered for speed, clarity, and reliability.
               </h2>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
@@ -277,9 +276,9 @@ export function LandingPage() {
 
           <section
             id="how-it-works"
-            className="border-t border-line py-12 text-center"
+            className="border-t border-line/60 py-14 text-center"
           >
-            <ul className="flex flex-col justify-center gap-4 text-xs font-mono text-txt-secondary sm:flex-row sm:gap-8">
+            <ul className="flex flex-col justify-center gap-4 text-xs font-medium text-txt-secondary sm:flex-row sm:gap-8">
               {benefits.map((benefit) => (
                 <li
                   key={benefit}
@@ -295,8 +294,8 @@ export function LandingPage() {
             </ul>
           </section>
 
-          <footer className="border-t border-line py-8 text-center text-xs font-mono text-txt-muted flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p>Invoicify — Distributed under the MIT License.</p>
+          <footer className="border-t border-line/60 py-8 text-center text-xs font-sans text-txt-muted flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>Invoicify — High performance client billing & time tracking.</p>
             <p>Crafted by PrimeFold</p>
           </footer>
         </div>

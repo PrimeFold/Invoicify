@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
 import { Clock, Play, Square } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+
 import { createTimeLog } from "@/app/actions/timelog";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 type TimeTrackerProps = {
-  clients: Array<{ id: string; name: string }>;
+  clients: Array<{
+    id: string;
+    name: string;
+  }>;
 };
 
 function formatElapsedTime(seconds: number) {
@@ -23,6 +26,7 @@ function formatElapsedTime(seconds: number) {
 
 export function TimeTracker({ clients }: TimeTrackerProps) {
   const router = useRouter();
+
   const [description, setDescription] = useState("");
   const [clientId, setClientId] = useState("");
   const [isTracking, setIsTracking] = useState(false);
@@ -32,14 +36,16 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
   const [isSaving, startTransition] = useTransition();
 
   useEffect(() => {
-    if (!isTracking) return;
+    if (!isTracking || !startedAt) return;
 
-    const timer = window.setInterval(
-      () => setElapsedSeconds((seconds) => seconds + 1),
-      1000
-    );
+    const timer = window.setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt.getTime()) / 1000);
+
+      setElapsedSeconds(elapsed);
+    }, 1000);
+
     return () => window.clearInterval(timer);
-  }, [isTracking]);
+  }, [isTracking, startedAt]);
 
   function startTimer() {
     if (!description.trim() || !clientId) {
@@ -57,7 +63,9 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
     if (!startedAt) return;
 
     const endTime = new Date();
+
     const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
+
     setIsTracking(false);
 
     startTransition(async () => {
@@ -70,10 +78,13 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
           durationMinutes,
           status: "UNBILLED",
         });
+
         setDescription("");
         setClientId("");
         setStartedAt(null);
         setElapsedSeconds(0);
+        setError(null);
+
         router.refresh();
       } catch (error) {
         setError(
@@ -85,71 +96,120 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
     });
   }
 
-  const canStart = clients.length > 0 && !isSaving;
+  const canStart =
+    clients.length > 0 &&
+    description.trim().length > 0 &&
+    clientId.length > 0 &&
+    !isSaving;
 
   return (
-    <Card className="rounded-lg border-line bg-surface p-4 shadow-none">
-      <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-        <div className="flex w-full items-center gap-3 md:w-auto">
-          <span
-            className={`grid size-9 place-items-center rounded border font-mono text-xs ${isTracking ? "animate-pulse border-status-pending-border bg-status-pending-bg text-status-pending" : "border-line bg-canvas text-txt-muted"}`}
+    <div className="glass-panel overflow-hidden border-line/80 shadow-md">
+      {/* Top status bar */}
+      <div className="flex items-center justify-between border-b border-line/60 bg-canvas/40 px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <div
+            className={`grid size-8 place-items-center rounded-xl border transition-all ${
+              isTracking
+                ? "border-status-pending-border bg-status-pending-bg text-status-pending shadow-[0_0_12px_var(--status-pending-border)]"
+                : "border-line/60 bg-surface/80 text-txt-muted"
+            }`}
           >
             <Clock className="size-4" />
-          </span>
-          <div className="flex-1 space-y-2">
+          </div>
+
+          <div>
+            <p className="font-sans text-xs font-semibold text-txt-primary tracking-tight">
+              {isTracking ? "Timer running" : "Time tracker"}
+            </p>
+
+            <p className="mt-0.5 font-sans text-[10px] text-txt-muted">
+              {isTracking
+                ? "Currently tracking your work session"
+                : "Track billable time against a client"}
+            </p>
+          </div>
+        </div>
+
+        {/* Timer readout */}
+        <div
+          className={`font-mono text-xl font-bold tracking-tight ${
+            isTracking ? "text-status-pending" : "text-txt-primary"
+          }`}
+        >
+          {formatElapsedTime(elapsedSeconds)}
+        </div>
+      </div>
+
+      {/* Main controls */}
+      <div className="p-4.5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          {/* Description */}
+          <div className="flex h-10 min-w-0 flex-1 items-center rounded-xl border border-line/60 bg-canvas/60 px-3.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
             <input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               disabled={isTracking || isSaving}
-              placeholder="What are you working on right now?"
-              className="w-full border-none bg-transparent font-sans text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none disabled:opacity-60"
+              placeholder="What are you working on?"
+              className="w-full border-none bg-transparent font-sans text-xs text-txt-primary outline-none placeholder:text-txt-muted disabled:opacity-60"
             />
+          </div>
+
+          {/* Client */}
+          <div className="flex h-10 w-full items-center rounded-xl border border-line/60 bg-canvas/60 px-3.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 lg:w-56">
             <select
               value={clientId}
               onChange={(event) => setClientId(event.target.value)}
               disabled={isTracking || isSaving || clients.length === 0}
-              className="w-full bg-transparent font-mono text-[10px] text-txt-muted outline-none disabled:opacity-60"
+              className="w-full cursor-pointer bg-transparent font-sans text-xs text-txt-primary outline-none disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <option value="">
+              <option value="" disabled className="bg-surface text-txt-primary">
                 {clients.length === 0
-                  ? "Add a client before tracking time"
-                  : "Select a client"}
+                  ? "No clients available"
+                  : "Select client"}
               </option>
+
               {clients.map((client) => (
-                <option key={client.id} value={client.id}>
+                <option key={client.id} value={client.id} className="bg-surface text-txt-primary">
                   {client.name}
                 </option>
               ))}
             </select>
-            {error && (
-              <p className="font-mono text-[10px] text-red-400">{error}</p>
-            )}
           </div>
-        </div>
-        <div className="flex w-full items-center justify-between gap-4 border-t border-line pt-3 md:w-auto md:justify-end md:border-t-0 md:pt-0">
-          <span className="font-mono text-2xl font-bold tracking-wider text-txt-primary">
-            {formatElapsedTime(elapsedSeconds)}
-          </span>
+
+          {/* Action Button */}
           <Button
             type="button"
-            disabled={isSaving || (!isTracking && !canStart)}
+            disabled={isSaving || (isTracking ? false : !canStart)}
             onClick={isTracking ? stopTimer : startTimer}
-            className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-md px-4 font-mono text-xs ${isTracking ? "border border-red-800/60 bg-red-950/80 text-red-400 hover:bg-red-900/80" : "border border-status-paid-border bg-status-paid-bg text-status-paid hover:bg-status-paid-bg/80"}`}
+            className={`h-10 shrink-0 cursor-pointer gap-2 rounded-xl px-4 font-sans text-xs font-semibold active-press transition-all shadow-sm ${
+              isTracking
+                ? "border border-status-overdue-border bg-status-overdue-bg text-status-overdue hover:bg-status-overdue-bg/80"
+                : "border border-status-paid-border bg-status-paid-bg text-status-paid hover:bg-status-paid-bg/80"
+            }`}
           >
             {isSaving ? (
-              "Saving…"
+              "Saving..."
             ) : isTracking ? (
               <>
-                <Square className="size-3.5 fill-red-400" /> Stop Timer
+                <Square className="size-3.5 fill-current" />
+                Stop Timer
               </>
             ) : (
               <>
-                <Play className="size-3.5 fill-status-paid" /> Start Timer
+                <Play className="size-3.5 fill-current" />
+                Start Timer
               </>
             )}
           </Button>
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mt-3 rounded-xl border border-status-overdue-border bg-status-overdue-bg p-3">
+            <p className="font-sans text-xs font-medium text-status-overdue">{error}</p>
+          </div>
+        )}
       </div>
-    </Card>
+    </div>
   );
 }

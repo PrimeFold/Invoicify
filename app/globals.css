@@ -7,14 +7,21 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", system-ui, sans-serif;
+  --font-mono: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
   --font-heading: var(--font-sans);
 
-  /* Custom Invoicify Developer Tokens */
+  /* Apple Design Motion Tokens */
+  --ease-apple-spring: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-apple-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-apple-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Invoicify Apple Glass Tokens */
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
+  --color-glass-surface: var(--glass-surface);
+  --color-glass-border: var(--glass-border);
   --color-line: var(--line);
 
   --color-txt-primary: var(--text-primary);
@@ -28,6 +35,10 @@
   --color-status-pending: var(--status-pending);
   --color-status-pending-bg: var(--status-pending-bg);
   --color-status-pending-border: var(--status-pending-border);
+
+  --color-status-overdue: var(--status-overdue);
+  --color-status-overdue-bg: var(--status-overdue-bg);
+  --color-status-overdue-border: var(--status-overdue-border);
 
   /* Shadcn UI Variables */
   --color-sidebar-ring: var(--sidebar-ring);
@@ -69,120 +80,322 @@
 }
 
 :root {
-  /* Light Mode Fallbacks */
-  --canvas: oklch(0.985 0 0);
-  --surface: oklch(1 0 0);
-  --surface-hover: oklch(0.967 0.003 264.542);
-  --line: oklch(0.928 0.006 264.531);
+  /* Apple Refined Light Mode OKLCH Palette */
+  --canvas: oklch(0.982 0.003 260); /* Soft warm porcelain canvas */
+  --surface: oklch(1 0 0); /* Crisp white surface */
+  --surface-hover: oklch(0.965 0.005 260);
+  --glass-surface: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(0, 0, 0, 0.07);
+  --glass-top-edge: rgba(255, 255, 255, 0.85);
+  --line: oklch(0.925 0.005 260);
 
-  --text-primary: oklch(0.208 0.042 265.755);
-  --text-secondary: oklch(0.45 0.02 265);
-  --text-muted: oklch(0.6 0.02 265);
+  --text-primary: oklch(0.18 0.025 260);
+  --text-secondary: oklch(0.42 0.02 260);
+  --text-muted: oklch(0.58 0.015 260);
 
-  --status-paid: oklch(0.55 0.18 150);
-  --status-paid-bg: oklch(0.95 0.05 150);
-  --status-paid-border: oklch(0.85 0.1 150);
+  --status-paid: oklch(0.58 0.17 148);
+  --status-paid-bg: oklch(0.96 0.04 148 / 85%);
+  --status-paid-border: oklch(0.86 0.08 148);
 
-  --status-pending: oklch(0.65 0.18 70);
-  --status-pending-bg: oklch(0.96 0.06 70);
-  --status-pending-border: oklch(0.88 0.1 70);
+  --status-pending: oklch(0.66 0.16 70);
+  --status-pending-bg: oklch(0.97 0.04 70 / 85%);
+  --status-pending-border: oklch(0.88 0.08 70);
 
-  /* Default Shadcn Root Variables */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.208 0.042 265.755);
+  --status-overdue: oklch(0.60 0.20 25);
+  --status-overdue-bg: oklch(0.97 0.04 25 / 85%);
+  --status-overdue-border: oklch(0.88 0.09 25);
+
+  /* Shadcn Light Root */
+  --background: oklch(0.982 0.003 260);
+  --foreground: oklch(0.18 0.025 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.208 0.042 265.755);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.208 0.042 265.755);
-  --primary: oklch(0.511 0.262 276.966);
-  --primary-foreground: oklch(0.985 0.002 247.839);
-  --secondary: oklch(0.967 0.003 264.542);
-  --secondary-foreground: oklch(0.279 0.041 260.031);
-  --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.953 0.024 276.966);
-  --accent-foreground: oklch(0.511 0.262 276.966);
+  --card-foreground: oklch(0.18 0.025 260);
+  --popover: oklch(1 0 0 / 96%);
+  --popover-foreground: oklch(0.18 0.025 260);
+  --primary: oklch(0.56 0.20 255);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.965 0.005 260);
+  --secondary-foreground: oklch(0.22 0.025 260);
+  --muted: oklch(0.965 0.005 260);
+  --muted-foreground: oklch(0.55 0.02 260);
+  --accent: oklch(0.95 0.02 255);
+  --accent-foreground: oklch(0.56 0.20 255);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.585 0.233 277.117);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --border: oklch(0.925 0.005 260);
+  --input: oklch(0.925 0.005 260);
+  --ring: oklch(0.56 0.20 255 / 40%);
+  --chart-1: oklch(0.56 0.20 255);
+  --chart-2: oklch(0.58 0.17 148);
+  --chart-3: oklch(0.66 0.16 70);
+  --chart-4: oklch(0.60 0.20 25);
+  --chart-5: oklch(0.60 0.16 300);
+  --radius: 0.75rem;
+  --sidebar: rgba(255, 255, 255, 0.80);
+  --sidebar-foreground: oklch(0.18 0.025 260);
+  --sidebar-primary: oklch(0.56 0.20 255);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.965 0.005 260);
+  --sidebar-accent-foreground: oklch(0.18 0.025 260);
+  --sidebar-border: oklch(0.925 0.005 260);
+  --sidebar-ring: oklch(0.56 0.20 255 / 40%);
 }
 
 .dark {
-  /* Invoicify High-Density Developer Palette */
-  --canvas: oklch(0.12 0 0); /* #09090b - Deep dark canvas */
-  --surface: oklch(0.18 0 0); /* #18181b - Cards, modals */
-  --surface-hover: oklch(0.23 0 0); /* #27272a - Row hover */
-  --line: oklch(0.23 0 0 / 80%); /* #27272a - 1px borders */
+  /* Apple Pro Translucent Dark Palette */
+  --canvas: oklch(0.12 0.01 260); /* Midnight dark canvas */
+  --surface: oklch(0.165 0.01 260); /* Elevated dark card surface */
+  --surface-hover: oklch(0.22 0.015 260);
+  --glass-surface: rgba(22, 22, 26, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-top-edge: rgba(255, 255, 255, 0.14);
+  --line: oklch(0.23 0.01 260 / 80%);
 
-  --text-primary: oklch(0.98 0 0); /* High-contrast text */
-  --text-secondary: oklch(0.7 0 0); /* Subtitles / labels */
-  --text-muted: oklch(0.5 0 0); /* Code / IDs / timestamps */
+  --text-primary: oklch(0.98 0 0);
+  --text-secondary: oklch(0.72 0.01 260);
+  --text-muted: oklch(0.52 0.01 260);
 
-  --status-paid: oklch(0.72 0.19 150);
-  --status-paid-bg: oklch(0.22 0.08 150 / 40%);
-  --status-paid-border: oklch(0.35 0.12 150 / 50%);
+  --status-paid: oklch(0.74 0.17 148);
+  --status-paid-bg: oklch(0.20 0.07 148 / 45%);
+  --status-paid-border: oklch(0.36 0.11 148 / 50%);
 
-  --status-pending: oklch(0.78 0.18 75);
-  --status-pending-bg: oklch(0.25 0.08 75 / 40%);
-  --status-pending-border: oklch(0.4 0.12 75 / 50%);
+  --status-pending: oklch(0.80 0.16 75);
+  --status-pending-bg: oklch(0.23 0.07 75 / 45%);
+  --status-pending-border: oklch(0.40 0.11 75 / 50%);
 
-  /* Default Shadcn Dark Overrides */
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.18 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.12 0 0);
-  --secondary: oklch(0.23 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.23 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.23 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --status-overdue: oklch(0.75 0.19 25);
+  --status-overdue-bg: oklch(0.23 0.08 25 / 45%);
+  --status-overdue-border: oklch(0.40 0.13 25 / 50%);
+
+  /* Shadcn Dark Root Overrides */
+  --background: oklch(0.12 0.01 260);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.165 0.01 260);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.165 0.01 260 / 95%);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.68 0.19 255);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.22 0.015 260);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.22 0.015 260);
+  --muted-foreground: oklch(0.70 0.01 260);
+  --accent: oklch(0.24 0.02 260);
+  --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.23 0 0);
-  --input: oklch(0.23 0 0);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.18 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.23 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.23 0 0);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: oklch(0.23 0.01 260 / 80%);
+  --input: oklch(0.23 0.01 260 / 80%);
+  --ring: oklch(0.68 0.19 255 / 60%);
+  --chart-1: oklch(0.68 0.19 255);
+  --chart-2: oklch(0.74 0.17 148);
+  --chart-3: oklch(0.80 0.16 75);
+  --chart-4: oklch(0.75 0.19 25);
+  --chart-5: oklch(0.72 0.16 300);
+  --sidebar: rgba(18, 18, 22, 0.75);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.68 0.19 255);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.22 0.015 260);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.23 0.01 260 / 80%);
+  --sidebar-ring: oklch(0.68 0.19 255 / 60%);
 }
 
 @layer base {
   * {
     @apply border-line outline-ring/50;
+    box-sizing: border-box;
   }
-  body {
-    @apply bg-canvas text-txt-primary;
-  }
+  
   html {
-    @apply font-sans;
+    @apply font-sans antialiased;
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply bg-canvas text-txt-primary font-sans antialiased min-h-screen;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Apple Typography Foundations (§15) */
+  h1, h2, h3, h4, h5, h6 {
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  p, span, label, input, button {
+    letter-spacing: -0.005em;
+  }
+}
+
+/* ==========================================================================
+   Apple SF Pro Typography & Material System
+   ========================================================================== */
+
+.glass-header {
+  background: var(--glass-surface);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05);
+}
+
+.glass-panel {
+  background: var(--glass-surface);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-top-color: var(--glass-top-edge);
+  box-shadow: 
+    0 12px 32px -12px rgba(0, 0, 0, 0.12),
+    0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-xl);
+}
+
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top-color: var(--glass-top-edge);
+  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-lg);
+  transition: transform 200ms var(--ease-apple-spring), box-shadow 200ms var(--ease-apple-spring), border-color 200ms ease;
+}
+
+.glass-card:hover {
+  border-color: var(--glass-top-edge);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.glass-pill {
+  background: var(--glass-surface);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: 9999px;
+}
+
+/* Instant Latency-Free Feedback & Micro-Interactions (§1, §10) */
+.active-press {
+  transition: transform 120ms var(--ease-apple-snappy), background-color 150ms ease, opacity 150ms ease;
+}
+
+.active-press:active {
+  transform: scale(0.97);
+  transition-duration: 80ms;
+}
+
+.apple-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: transform 120ms var(--ease-apple-snappy), background-color 150ms ease, box-shadow 150ms ease;
+  user-select: none;
+}
+
+.apple-button:active {
+  transform: scale(0.97);
+}
+
+/* Apple Optical Typography Classes (§15) */
+.apple-display {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", system-ui, sans-serif;
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  font-optical-sizing: auto;
+}
+
+.apple-heading {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", system-ui, sans-serif;
+  font-size: clamp(1.35rem, 2vw, 1.85rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  font-optical-sizing: auto;
+}
+
+.apple-subhead {
+  font-size: 1.05rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.apple-label-caps {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+/* Smooth Mac-Style Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.5 0 0 / 25%);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0 0 / 45%);
+  background-clip: content-box;
+}
+
+/* Accessibility Adjustments (§14) */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .glass-card:hover {
+    transform: none !important;
+  }
+
+  .active-press:active,
+  .apple-button:active {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-header,
+  .glass-panel,
+  .glass-pill {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--surface) !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-panel,
+  .glass-card,
+  .glass-header {
+    border-width: 2px !important;
+    border-color: var(--text-primary) !important;
   }
 }

@@ -10,7 +10,7 @@ export type InvoiceMetrics = {
 
 export function InvoiceMetrics({ metrics }: { metrics?: InvoiceMetrics }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-3">
       <Metric
         label="Total Collected"
         value={metrics ? formatCurrency(metrics.collectedAmount) : "—"}
@@ -19,6 +19,7 @@ export function InvoiceMetrics({ metrics }: { metrics?: InvoiceMetrics }) {
             ? `${metrics.paidCount} paid invoices`
             : "Awaiting invoice data"
         }
+        tone="paid"
       />
       <Metric
         label="Unpaid / Pending"
@@ -53,25 +54,27 @@ function Metric({
   label: string;
   value: string;
   note: string;
-  tone?: "default" | "pending" | "danger";
+  tone?: "default" | "paid" | "pending" | "danger";
 }) {
   const color =
     tone === "danger"
-      ? "text-red-400"
+      ? "text-status-overdue"
       : tone === "pending"
         ? "text-status-pending"
-        : "text-txt-primary";
+        : tone === "paid"
+          ? "text-status-paid"
+          : "text-txt-primary";
   return (
-    <div className="rounded-md border border-line bg-canvas p-4 text-left">
-      <span className="font-mono text-xs uppercase tracking-wider text-txt-muted">
+    <div className="glass-card p-4 text-left active-press">
+      <span className="apple-label-caps text-[10px]">
         {label}
       </span>
       <p
-        className={`mt-1 font-mono text-xl font-semibold tracking-tight ${color}`}
+        className={`mt-1.5 font-mono text-2xl font-bold tracking-tight ${color}`}
       >
         {value}
       </p>
-      <p className="mt-1 font-mono text-xs text-txt-secondary">{note}</p>
+      <p className="mt-1 text-xs text-txt-secondary tracking-tight">{note}</p>
     </div>
   );
 }

@@ -14,7 +14,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -39,11 +38,11 @@ type ClientsTableProps = {
 
 export function ClientsTable({ clients }: ClientsTableProps) {
   return (
-    <Card className="overflow-hidden rounded-lg border-line bg-surface py-0 shadow-none">
+    <Card className="overflow-hidden rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left">
+        <table className="w-full border-collapse text-left font-sans text-xs">
           <thead>
-            <tr className="border-b border-line bg-canvas/40 font-mono text-[11px] uppercase tracking-wider text-txt-muted">
+            <tr className="border-b border-line/60 bg-canvas/40 apple-label-caps text-[9px] text-txt-muted">
               <th className="px-4 py-3">Client Name</th>
               <th className="px-4 py-3">Hourly Rate</th>
               <th className="px-4 py-3">Unbilled Time</th>
@@ -51,20 +50,19 @@ export function ClientsTable({ clients }: ClientsTableProps) {
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line/60 font-mono text-xs">
+          <tbody className="divide-y divide-line/40 font-mono text-xs">
             {clients.length > 0 ? (
               clients.map((client) => (
                 <ClientRow key={client.id} client={client} />
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center">
-                  <p className="font-sans text-sm font-medium text-txt-primary">
+                <td colSpan={5} className="px-4 py-12 text-center font-sans">
+                  <p className="text-sm font-medium text-txt-primary">
                     No clients to display
                   </p>
                   <p className="mt-1 text-xs text-txt-muted">
-                    Connect this table to the client query, then add a client to
-                    start tracking billable work.
+                    Add a client to start tracking billable work and managing invoicing profiles.
                   </p>
                 </td>
               </tr>
@@ -80,24 +78,24 @@ function ClientRow({ client }: { client: ClientTableRow }) {
   const hasUnbilledTime = (client.unbilledHours ?? 0) > 0;
 
   return (
-    <tr className="transition-colors hover:bg-surface-hover/50">
+    <tr className="transition-colors hover:bg-surface-hover/60 active-press">
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-3">
-          <span className="grid size-8 place-items-center rounded border border-line bg-canvas text-txt-primary">
+          <span className="grid size-8 place-items-center rounded-lg border border-line/60 bg-canvas/60 text-primary shadow-2xs">
             <Building2 className="size-4" />
           </span>
           <div>
-            <p className="font-sans text-sm font-medium text-txt-primary">
+            <p className="font-sans text-sm font-semibold text-txt-primary tracking-tight">
               {client.name}
             </p>
-            <span className="mt-0.5 inline-flex items-center gap-1 font-mono text-[11px] text-txt-muted">
+            <span className="mt-0.5 inline-flex items-center gap-1 font-mono text-[10px] text-txt-muted">
               <Mail className="size-3" /> {client.email}
             </span>
           </div>
         </div>
       </td>
       <td className="px-4 py-3.5">
-        <span className="inline-flex items-center gap-1 rounded border border-line bg-canvas px-2 py-0.5 text-txt-primary">
+        <span className="inline-flex items-center gap-1 rounded-full border border-line/60 bg-canvas/60 px-2.5 py-0.5 text-txt-primary font-mono text-[11px]">
           <DollarSign className="size-3 text-txt-muted" />
           {client.hourlyRate.toFixed(2)}/hr
         </span>
@@ -105,10 +103,10 @@ function ClientRow({ client }: { client: ClientTableRow }) {
       <td className="px-4 py-3.5">
         {hasUnbilledTime && client.unbilledAmount !== undefined ? (
           <div>
-            <p className="font-semibold text-status-pending">
+            <p className="font-mono font-semibold text-status-pending text-xs">
               {formatCurrency(client.unbilledAmount)}
             </p>
-            <p className="text-[10px] text-txt-muted">
+            <p className="font-sans text-[10px] text-txt-muted">
               {client.unbilledHours} hrs pending
             </p>
           </div>
@@ -116,7 +114,7 @@ function ClientRow({ client }: { client: ClientTableRow }) {
           <span className="text-txt-muted">—</span>
         )}
       </td>
-      <td className="px-4 py-3.5 font-semibold text-txt-primary">
+      <td className="px-4 py-3.5 font-mono font-semibold text-txt-primary">
         {client.totalBilled === undefined
           ? "—"
           : formatCurrency(client.totalBilled)}
@@ -132,18 +130,17 @@ function ClientRow({ client }: { client: ClientTableRow }) {
                   variant="ghost"
                   size="sm"
                   aria-label={`More options for ${client.name}`}
-                  className="size-8 p-0 text-txt-muted hover:bg-surface-hover hover:text-txt-primary"
+                  className="size-8 p-0 text-txt-muted hover:bg-surface-hover hover:text-txt-primary active-press rounded-lg"
                 >
                   <MoreVertical className="size-3.5" />
                 </Button>
               }
-            ></DropdownMenuTrigger>
-            <DropdownMenuContent>
+            />
+            <DropdownMenuContent className="glass-panel p-1.5 min-w-32 shadow-xl">
               <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <p className="text-red-400 flex gap-2 h-auto w-auto ">
-                    Delete <Trash />
-                  </p>
+                <DropdownMenuItem className="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs text-destructive focus:bg-destructive/10 focus:text-destructive active-press">
+                  <span>Delete</span>
+                  <Trash className="size-3.5" />
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -169,13 +166,13 @@ function ClientAction({
             variant="ghost"
             size="sm"
             aria-label={label}
-            className="size-8 p-0 text-txt-secondary hover:bg-surface-hover hover:text-txt-primary"
+            className="size-8 p-0 text-txt-secondary hover:bg-surface-hover hover:text-txt-primary active-press rounded-lg"
           >
             <Icon className="size-3.5" />
           </Button>
         }
       />
-      <TooltipContent className="border-line bg-canvas font-mono text-[10px] text-txt-primary">
+      <TooltipContent className="border-line/60 bg-canvas/90 backdrop-blur-md font-sans text-[11px] text-txt-primary rounded-lg shadow-md">
         {label}
       </TooltipContent>
     </Tooltip>

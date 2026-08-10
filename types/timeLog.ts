@@ -1,4 +1,4 @@
-import { Client } from "./client";
+import type { Client } from "./client";
 
 export interface TimeLog {
   id: string;
@@ -10,4 +10,11 @@ export interface TimeLog {
   endTime: Date | null;
   durationMinutes: number;
   status: string;
+}
+
+export interface TimeLogProps {
+  id: string;
+  description: string;
+  endTime: Date | null;
+  durationMinutes: number;
 }

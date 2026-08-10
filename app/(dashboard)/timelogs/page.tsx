@@ -1,4 +1,4 @@
-import { getClients } from "@/app/actions/client";
+import {getClientOptions, getClients } from "@/app/actions/client";
 import { getTimeLogs } from "@/app/actions/timelog";
 import {
   TimeLogMetrics,
@@ -22,11 +22,13 @@ function formatDuration(minutes: number) {
 }
 
 export default async function TimeLogsPage() {
-  const [timeLogResult, clientResult] = await Promise.all([
+  const [timeLogResult] = await Promise.all([
     getTimeLogs(1),
     getClients(1, 100),
   ]);
 
+  const clients = await getClientOptions();
+  
   const logs: TimeLogTableRow[] = timeLogResult.items.map((log) => {
     const hours = log.durationMinutes / 60;
     const hourlyRate = Number(log.client.hourlyRate);
@@ -78,13 +80,7 @@ export default async function TimeLogsPage() {
 
   return (
     <div className="space-y-6">
-      <TimeLogsPageHeader logCount={timeLogResult.total} />
-      <TimeTracker
-        clients={clientResult.items.map((client) => ({
-          id: client.id!,
-          name: client.name,
-        }))}
-      />
+      <TimeLogsPageHeader clientList={clients} logCount={timeLogResult.total}/>
       <TimeLogMetrics metrics={metrics} />
       <TimeLogsTable logs={logs} />
     </div>
