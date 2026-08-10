@@ -1,4 +1,4 @@
-import { InvoiceWithClientAndItems } from "@/app/actions/pdfkit";
+import type { InvoiceWithClientAndItems } from "@/app/actions/pdfkit";
 
 export const pdfResponse = ({
   pdfBuffer,

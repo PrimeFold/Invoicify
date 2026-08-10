@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 export async function proxy(request: NextRequest) {
@@ -15,7 +15,9 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register") ||
     request.nextUrl.pathname.startsWith("/signup") ||
-    request.nextUrl.pathname.startsWith("/api/invoices/demo/pdf");
+    request.nextUrl.pathname.includes("/pdf") ||
+    request.nextUrl.pathname.includes("/api/invoices/public") ||
+    request.nextUrl.pathname.includes("/preview/invoice");
 
   if (!session?.user && !isAuthRoute && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));

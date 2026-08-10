@@ -1,21 +1,19 @@
+"use client";
+
+import { useOptimistic, useTransition } from "react";
 import {
   Building2,
   Clock,
   DollarSign,
   FileText,
   Mail,
-  MoreVertical,
-  Trash,
+  Trash2,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { deleteClient } from "@/app/actions/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -37,6 +35,28 @@ type ClientsTableProps = {
 };
 
 export function ClientsTable({ clients }: ClientsTableProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [optimisticClients, setOptimisticClients] = useOptimistic(
+    clients,
+    (state, idToDelete: string) => state.filter((item) => item.id !== idToDelete)
+  );
+
+  function handleDelete(id: string) {
+    startTransition(async () => {
+      // 1. Instantly remove row from UI (0ms latency)
+      setOptimisticClients(id);
+
+      try {
+        // 2. Perform DB deletion in background
+        await deleteClient(id);
+        router.refresh();
+      } catch (error) {
+        console.error("Failed to delete client:", error);
+      }
+    });
+  }
+
   return (
     <Card className="overflow-hidden rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left">
       <div className="overflow-x-auto">
@@ -51,9 +71,14 @@ export function ClientsTable({ clients }: ClientsTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-line/40 font-mono text-xs">
-            {clients.length > 0 ? (
-              clients.map((client) => (
-                <ClientRow key={client.id} client={client} />
+            {optimisticClients.length > 0 ? (
+              optimisticClients.map((client) => (
+                <ClientRow
+                  key={client.id}
+                  client={client}
+                  onDelete={() => handleDelete(client.id)}
+                  isPending={isPending}
+                />
               ))
             ) : (
               <tr>
@@ -74,11 +99,19 @@ export function ClientsTable({ clients }: ClientsTableProps) {
   );
 }
 
-function ClientRow({ client }: { client: ClientTableRow }) {
+function ClientRow({
+  client,
+  onDelete,
+  isPending,
+}: {
+  client: ClientTableRow;
+  onDelete: () => void;
+  isPending: boolean;
+}) {
   const hasUnbilledTime = (client.unbilledHours ?? 0) > 0;
 
   return (
-    <tr className="transition-colors hover:bg-surface-hover/60 active-press">
+    <tr className="transition-colors duration-150 ease-out hover:bg-surface-hover/60">
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-3">
           <span className="grid size-8 place-items-center rounded-lg border border-line/60 bg-canvas/60 text-primary shadow-2xs">
@@ -121,30 +154,18 @@ function ClientRow({ client }: { client: ClientTableRow }) {
       </td>
       <td className="px-4 py-3.5 text-right">
         <div className="flex items-center justify-end gap-1">
-          <ClientAction label="Log Time for Client" icon={Clock} />
-          <ClientAction label="Generate Invoice" icon={FileText} />
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label={`More options for ${client.name}`}
-                  className="size-8 p-0 text-txt-muted hover:bg-surface-hover hover:text-txt-primary active-press rounded-lg"
-                >
-                  <MoreVertical className="size-3.5" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent className="glass-panel p-1.5 min-w-32 shadow-xl">
-              <DropdownMenuGroup>
-                <DropdownMenuItem className="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs text-destructive focus:bg-destructive/10 focus:text-destructive active-press">
-                  <span>Delete</span>
-                  <Trash className="size-3.5" />
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ClientAction label="Log Time for Client" icon={Clock} href="/timelogs" />
+          <ClientAction label="Generate Invoice" icon={FileText} href="/invoices" />
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isPending}
+            onClick={onDelete}
+            aria-label={`Delete ${client.name}`}
+            className="size-8 p-0 text-txt-muted hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors"
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
         </div>
       </td>
     </tr>
@@ -154,9 +175,11 @@ function ClientRow({ client }: { client: ClientTableRow }) {
 function ClientAction({
   label,
   icon: Icon,
+  href,
 }: {
   label: string;
   icon: typeof Clock;
+  href: string;
 }) {
   return (
     <Tooltip>
@@ -166,7 +189,9 @@ function ClientAction({
             variant="ghost"
             size="sm"
             aria-label={label}
-            className="size-8 p-0 text-txt-secondary hover:bg-surface-hover hover:text-txt-primary active-press rounded-lg"
+            nativeButton={false}
+            className="size-8 p-0 text-txt-secondary hover:bg-surface-hover hover:text-txt-primary rounded-lg transition-colors"
+            render={<Link href={href} />}
           >
             <Icon className="size-3.5" />
           </Button>

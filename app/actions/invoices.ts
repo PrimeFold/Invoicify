@@ -1,10 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
 import { getRedis } from "@/lib/redis";
-import { TimeLog } from "@/types/timeLog";
 import type { PaginatedResult } from "@/types/pagination";
+import type { TimeLog } from "@/types/timeLog";
 import { invalidateDashboardCache } from "./dashboard";
 
 type InvoiceLine = {
@@ -75,45 +76,56 @@ export const getInvoices = async (
 
 export const getInvoiceSummary = async (): Promise<InvoiceSummary> => {
   const user = await requireUser();
-  const summaries = await prisma.invoice.groupBy({
-    by: ["status"],
+
+  const invoices = await prisma.invoice.findMany({
     where: { userId: user.id },
-    _count: { _all: true },
-    _sum: { totalAmount: true },
+    select: {
+      totalAmount: true,
+      status: true,
+      createdAt: true,
+    },
   });
 
-  const paid = summaries.find((summary) => summary.status === "PAID");
-  const unpaid = summaries.find((summary) => summary.status === "UNPAID");
+  const summary = invoices.reduce(
+    (acc, inv) => {
+      acc.totalInvoices += 1;
+      if (inv.status === "PAID") {
+        acc.collectedAmount += inv.totalAmount;
+        acc.paidCount += 1;
+      } else {
+        acc.unpaidAmount += inv.totalAmount;
+        acc.unpaidCount += 1;
+      }
+      return acc;
+    },
+    {
+      totalInvoices: 0,
+      collectedAmount: 0,
+      paidCount: 0,
+      unpaidAmount: 0,
+      unpaidCount: 0,
+      overdueAmount: 0,
+      overdueCount: 0,
+    }
+  );
 
-  return {
-    totalInvoices: summaries.reduce(
-      (total, summary) => total + summary._count._all,
-      0
-    ),
-    collectedAmount: paid?._sum.totalAmount ?? 0,
-    paidCount: paid?._count._all ?? 0,
-    unpaidAmount: unpaid?._sum.totalAmount ?? 0,
-    unpaidCount: unpaid?._count._all ?? 0,
-    // The schema has no due date or OVERDUE invoice status yet.
-    overdueAmount: 0,
-    overdueCount: 0,
-  };
+  return summary;
 };
 
-//Rounding off
-const roundCurrency = (amount: number) => Math.round(amount * 100) / 100;
+function roundCurrency(amount: number): number {
+  return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
 
-//Creation of Invoice number
-const createInvoiceNumber = () =>
-  `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+function createInvoiceNumber(): string {
+  const stamp = Date.now().toString().slice(-6);
+  return `INV-${stamp}`;
+}
 
-//Getting all unbilled logs by client
 export const getAllUnBilledLogsById = async (clientId: string) => {
   const user = await requireUser();
   const redis = getRedis();
 
   const key = `unbilled-logs:${user.id}:${clientId}`;
-
   const cache = await redis.get(key);
 
   if (cache) {
@@ -131,20 +143,13 @@ export const getAllUnBilledLogsById = async (clientId: string) => {
     },
   });
 
-  if (logs.length === 0) {
-    throw new Error("No unbilled time logs found for this client.");
-  }
-
-  // Cache for 2 minutes
-  await redis.set(key, JSON.stringify(logs), "EX", 120);
-
+  await redis.set(key, JSON.stringify(logs), "EX", 60);
   return logs;
 };
 
 export const calculateTotalHoursAndLines = async (clientId: string) => {
   const user = await requireUser();
 
-  // Fetch the rate from the database. Never trust a rate or line total sent by the client.
   const client = await prisma.client.findFirst({
     where: { id: clientId, userId: user.id },
     select: { hourlyRate: true },
@@ -187,7 +192,6 @@ export const getInvoiceById = async (invoiceId: string) => {
 
   if (cachedInvoice) {
     const invoice = JSON.parse(cachedInvoice);
-    // normalize date fields (Redis stores strings)
     if (invoice.createdAt) invoice.createdAt = new Date(invoice.createdAt);
     return invoice;
   }
@@ -208,7 +212,6 @@ export const getInvoiceById = async (invoiceId: string) => {
   }
 
   const cache = JSON.stringify(invoice);
-  // set with expiry (120s)
   await redis.set(key, cache, "EX", 120);
 
   return invoice;
@@ -220,37 +223,30 @@ export const generateInvoice = async (
 ) => {
   const redis = getRedis();
 
-  //Making sure timelog isn't empty..
   if (timeLogIds.length === 0) {
     throw new Error("Select at least one time log to create an invoice.");
   }
 
   const user = await requireUser();
 
-  // Use a deterministic generation cache key so repeated "Generate" clicks
-  // with the same timeLogIds won't create duplicate invoices or hit the DB.
   const genKey = `invoice-gen:${user.id}:${clientId}:${[...timeLogIds].sort().join(",")}`;
   try {
     const cached = await redis.get(genKey);
     if (cached) {
       const parsed = JSON.parse(cached);
       if (parsed && parsed.invoice) {
-        // restore createdAt
         if (parsed.invoice.createdAt)
           parsed.invoice.createdAt = new Date(parsed.invoice.createdAt);
         return parsed;
       }
     }
   } catch (err) {
-    // non-fatal: continue to generate if Redis read fails
-    // eslint-disable-next-line no-console
     console.warn("Redis read failed for generation key:", err);
   }
 
   const { items, totalHours, totalAmount } =
     await calculateTotalHoursAndLines(clientId);
 
-  //Making sure transaction happens per invoice mapping the items data to each record..
   const result = await prisma.$transaction(async (tx) => {
     const invoice = await tx.invoice.create({
       data: {
@@ -270,8 +266,6 @@ export const generateInvoice = async (
       include: { items: true },
     });
 
-    //Updating timelog statuses as well..
-    // The status condition prevents a log being invoiced twice by concurrent requests.
     const updatedLogs = await tx.timeLog.updateMany({
       where: {
         id: { in: timeLogIds },
@@ -290,21 +284,29 @@ export const generateInvoice = async (
     return { invoice, totalHours };
   });
 
-  await invalidateDashboardCache(user.id);
+  // Clear Redis caches for this user & client
+  try {
+    await redis.del(`unbilled-timelogs:${user.id}:${clientId}`);
+    await redis.del(`timelog-count:${user.id}:${clientId}`);
+    await redis.del(`unbilled-logs:${user.id}:${clientId}`);
+  } catch (err) {
+    console.warn("Failed to clear Redis timelog cache:", err);
+  }
 
-  // cache the created invoice for quick subsequent reads
+  await invalidateDashboardCache(user.id);
+  revalidatePath("/invoices");
+  revalidatePath("/timelogs");
+  revalidatePath("/clients");
+
   try {
     const key = `invoice:${result.invoice.id}`;
     await redis.set(key, JSON.stringify(result.invoice), "EX", 120);
-    // also cache the generation result so repeated generate requests return quickly
     try {
       await redis.set(genKey, JSON.stringify(result), "EX", 120);
     } catch (err) {
-      // ignore generation cache failures
+      // ignore
     }
   } catch (err) {
-    // non-fatal: cache failure should not block invoice creation
-    // eslint-disable-next-line no-console
     console.warn("Failed to cache invoice:", err);
   }
 
@@ -330,8 +332,45 @@ export const deleteInvoice = async (clientId: string, timeLogIds: string[]) => {
     });
 
     await invalidateDashboardCache(user.id);
+    revalidatePath("/invoices");
+    revalidatePath("/timelogs");
+    revalidatePath("/clients");
+
     return result;
   } catch (error) {
     throw new Error((error as Error).message);
   }
 };
+
+export const markInvoiceAsPaid = async (invoiceId: string) => {
+  const user = await requireUser();
+  const redis = getRedis();
+
+  try {
+    const updated = await prisma.invoice.update({
+      where: {
+        id: invoiceId,
+        userId: user.id,
+      },
+      data: {
+        status: "PAID",
+      },
+    });
+
+    try {
+      await redis.del(`invoice:${invoiceId}`);
+      await redis.del(`invoice-pdf:${invoiceId}`);
+    } catch (err) {
+      console.warn("Failed to clear Redis invoice cache:", err);
+    }
+
+    await invalidateDashboardCache(user.id);
+    revalidatePath("/invoices");
+    revalidatePath("/dashboard");
+
+    return updated;
+  } catch (error) {
+    throw new Error((error as Error).message);
+  }
+};
+

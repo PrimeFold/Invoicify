@@ -1,4 +1,9 @@
-import { Building2, CheckCircle2, MoreVertical, Trash2 } from "lucide-react";
+"use client";
+
+import { useOptimistic, useTransition } from "react";
+import { Building2, CheckCircle2, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { deleteTimeLog } from "@/app/actions/timelog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -15,6 +20,28 @@ export type TimeLogTableRow = {
 };
 
 export function TimeLogsTable({ logs }: { logs: TimeLogTableRow[] }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [optimisticLogs, setOptimisticLogs] = useOptimistic(
+    logs,
+    (state, idToDelete: string) => state.filter((item) => item.id !== idToDelete)
+  );
+
+  function handleDelete(id: string) {
+    startTransition(async () => {
+      // 1. Instantly remove row from UI (0ms latency)
+      setOptimisticLogs(id);
+
+      try {
+        // 2. Perform DB deletion in background
+        await deleteTimeLog(id);
+        router.refresh();
+      } catch (error) {
+        console.error("Failed to delete time log:", error);
+      }
+    });
+  }
+
   return (
     <Card className="overflow-hidden rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 text-left shadow-sm">
       <div className="overflow-x-auto">
@@ -31,8 +58,15 @@ export function TimeLogsTable({ logs }: { logs: TimeLogTableRow[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-line/40">
-            {logs.length ? (
-              logs.map((log) => <TimeLogRow key={log.id} log={log} />)
+            {optimisticLogs.length ? (
+              optimisticLogs.map((log) => (
+                <TimeLogRow
+                  key={log.id}
+                  log={log}
+                  onDelete={() => handleDelete(log.id)}
+                  isPending={isPending}
+                />
+              ))
             ) : (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center font-sans">
@@ -52,10 +86,19 @@ export function TimeLogsTable({ logs }: { logs: TimeLogTableRow[] }) {
   );
 }
 
-function TimeLogRow({ log }: { log: TimeLogTableRow }) {
+function TimeLogRow({
+  log,
+  onDelete,
+  isPending,
+}: {
+  log: TimeLogTableRow;
+  onDelete: () => void;
+  isPending: boolean;
+}) {
   const billed = log.status === "BILLED";
+
   return (
-    <tr className="transition-colors hover:bg-surface-hover/60 active-press">
+    <tr className="transition-colors duration-150 ease-out hover:bg-surface-hover/60">
       <td className="px-4 py-3.5 font-sans font-medium text-txt-primary">
         {log.description}
         <p className="mt-0.5 font-mono text-[10px] text-txt-muted">
@@ -70,9 +113,6 @@ function TimeLogRow({ log }: { log: TimeLogTableRow }) {
       </td>
       <td className="px-4 py-3.5 font-mono font-semibold text-txt-primary">
         {log.duration}
-        <span className="block font-sans text-[10px] font-normal text-txt-muted">
-          ({log.hours} hrs)
-        </span>
       </td>
       <td className="px-4 py-3.5 font-mono text-txt-muted text-[11px]">
         {formatCurrency(log.hourlyRate)}/hr
@@ -94,22 +134,16 @@ function TimeLogRow({ log }: { log: TimeLogTableRow }) {
         )}
       </td>
       <td className="px-4 py-3.5 text-right">
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end">
           <Button
             variant="ghost"
             size="sm"
+            disabled={isPending}
+            onClick={onDelete}
             aria-label={`Delete ${log.description}`}
-            className="size-8 p-0 text-txt-muted hover:bg-destructive/10 hover:text-destructive active-press rounded-lg"
+            className="size-8 p-0 text-txt-muted hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors"
           >
             <Trash2 className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label={`More options for ${log.description}`}
-            className="size-8 p-0 text-txt-muted hover:bg-surface-hover hover:text-txt-primary active-press rounded-lg"
-          >
-            <MoreVertical className="size-3.5" />
           </Button>
         </div>
       </td>

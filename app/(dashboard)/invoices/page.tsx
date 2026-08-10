@@ -34,8 +34,9 @@ export default async function InvoicesPage({
     invoiceResult = await getInvoices(invoiceResult.totalPages);
   }
 
-  const invoices: InvoiceTableRow[] = invoiceResult.items.map((invoice) => ({
+  const invoices: InvoiceTableRow[] = invoiceResult.items.map((invoice, index) => ({
     id: invoice.invoiceNumber,
+    dbId: invoice.id,
     clientName: invoice.client.name,
     clientEmail: invoice.client.email,
     amount: invoice.totalAmount,
@@ -45,6 +46,7 @@ export default async function InvoicesPage({
       day: "numeric",
       year: "numeric",
     }).format(invoice.createdAt),
+    isRecent: index === 0, // Mark the most recent client invoice as active for PDF preview
     status: invoice.status === "PAID" ? "PAID" : "UNPAID",
   }));
 

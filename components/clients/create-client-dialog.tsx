@@ -55,60 +55,88 @@ export function CreateClientDialog() {
       <Button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-txt-primary px-3 text-xs font-medium text-canvas hover:opacity-90"
+        className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-primary px-3.5 font-sans text-xs font-semibold text-primary-foreground hover:opacity-90 active-press shadow-xs"
       >
-        <Plus className="size-4" />
+        <Plus className="size-3.5" />
         Add Client
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="border-line bg-surface text-txt-primary">
+        <DialogContent className="sm:max-w-md glass-panel p-6 shadow-2xl text-txt-primary">
           <DialogHeader>
-            <DialogTitle>Add Client</DialogTitle>
-            <DialogDescription>
-              Set up a client and their default hourly rate.
+            <DialogTitle className="font-sans text-base font-semibold text-txt-primary">
+              Add Client
+            </DialogTitle>
+            <DialogDescription className="font-sans text-xs text-txt-secondary">
+              Set up a client profile and their default hourly billing rate.
             </DialogDescription>
           </DialogHeader>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="client-name">Name</Label>
+          <form className="space-y-4 pt-2" onSubmit={handleSubmit}>
+            <div className="space-y-1.5">
+              <Label htmlFor="client-name" className="apple-label-caps text-[10px]">
+                Name
+              </Label>
               <Input
                 id="client-name"
                 name="name"
                 minLength={4}
                 maxLength={30}
+                placeholder="e.g. Acme Corporation"
                 required
+                className="h-10 rounded-xl border-line/80 bg-canvas/60 font-sans text-xs"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="client-email">Email</Label>
-              <Input id="client-email" name="email" type="email" required />
+            <div className="space-y-1.5">
+              <Label htmlFor="client-email" className="apple-label-caps text-[10px]">
+                Email
+              </Label>
+              <Input
+                id="client-email"
+                name="email"
+                type="email"
+                placeholder="billing@acme.com"
+                required
+                className="h-10 rounded-xl border-line/80 bg-canvas/60 font-sans text-xs"
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="client-hourly-rate">Hourly rate (USD)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="client-hourly-rate" className="apple-label-caps text-[10px]">
+                Hourly rate (USD)
+              </Label>
               <Input
                 id="client-hourly-rate"
                 name="hourlyRate"
                 type="number"
                 min="0"
                 step="0.01"
+                placeholder="100.00"
                 required
+                className="h-10 rounded-xl border-line/80 bg-canvas/60 font-sans text-xs font-mono"
               />
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && (
+              <div className="rounded-xl border border-status-overdue-border bg-status-overdue-bg p-3">
+                <p className="font-sans text-xs font-medium text-status-overdue">{error}</p>
+              </div>
+            )}
 
-            <DialogFooter>
+            <DialogFooter className="pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={isPending}
+                className="active-press rounded-xl border-line/80 bg-surface/80 text-xs font-sans font-medium"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending}>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="active-press rounded-xl bg-primary text-primary-foreground font-sans text-xs font-semibold shadow-xs"
+              >
                 {isPending ? "Creating…" : "Create Client"}
               </Button>
             </DialogFooter>

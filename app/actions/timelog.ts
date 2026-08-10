@@ -1,4 +1,6 @@
 "use server";
+
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
 import { getRedis } from "@/lib/redis";
@@ -19,12 +21,19 @@ type CreateTimeLogInput = {
 
 export const getUnbilledTimeLogs = async (clientId: string) => {
   const user = await requireUser();
-  const redis = getRedis();
-  const key = `unbilled-timelogs:${clientId}`;
-  const cache = await redis.get(key);
-  if (cache) {
-    return;
+  const key = `unbilled-timelogs:${user.id}:${clientId}`;
+  let redis: ReturnType<typeof getRedis> | undefined;
+
+  try {
+    redis = getRedis();
+    const cache = await redis.get(key);
+    if (cache) {
+      return JSON.parse(cache);
+    }
+  } catch (err) {
+    console.warn("Failed to read unbilled timelogs cache:", err);
   }
+
   try {
     const timeLogs = await prisma.timeLog.findMany({
       where: {
@@ -41,35 +50,53 @@ export const getUnbilledTimeLogs = async (clientId: string) => {
       },
     });
 
-    await redis.set(key, JSON.stringify(timeLogs), "EX", 120);
+    try {
+      await redis?.set(key, JSON.stringify(timeLogs), "EX", 120);
+    } catch (err) {
+      console.warn("Failed to cache unbilled timelogs:", err);
+    }
+
     return timeLogs;
   } catch (error) {
     throw new Error((error as Error).message);
   }
 };
 
-export const getUnbilledLogTimeLogCount = async (clientId:string) => {
+export const getUnbilledLogTimeLogCount = async (clientId: string) => {
   const user = await requireUser();
-  const redis = getRedis();
-  const key = `timelog-count:${clientId}`
-  const cache = await redis.get(key);
-  if (cache) {
-    return;
+  const key = `timelog-count:${user.id}:${clientId}`;
+  let redis: ReturnType<typeof getRedis> | undefined;
+
+  try {
+    redis = getRedis();
+    const cache = await redis.get(key);
+    if (cache) {
+      return JSON.parse(cache);
+    }
+  } catch (err) {
+    console.warn("Failed to read timelog count cache:", err);
   }
+
   try {
     const count = await prisma.timeLog.count({
       where: {
         userId: user.id,
         clientId,
-        status:"UNBILLED"
+        status: "UNBILLED",
       },
-    })
+    });
+
+    try {
+      await redis?.set(key, JSON.stringify(count), "EX", 120);
+    } catch (err) {
+      console.warn("Failed to cache timelog count:", err);
+    }
+
     return count;
   } catch (error) {
-    throw new Error((error as Error).message) || "Couldn't fetch count of the logs.."
+    throw new Error((error as Error).message || "Couldn't fetch count of the logs..");
   }
-}
-
+};
 
 export const createTimeLog = async (data: CreateTimeLogInput) => {
   try {
@@ -94,7 +121,22 @@ export const createTimeLog = async (data: CreateTimeLogInput) => {
         status: true,
       },
     });
+
+    // Invalidate Redis caches for this client's timelogs
+    try {
+      const redis = getRedis();
+      await redis.del(`unbilled-timelogs:${user.id}:${data.clientId}`);
+      await redis.del(`timelog-count:${user.id}:${data.clientId}`);
+      await redis.del(`unbilled-logs:${user.id}:${data.clientId}`);
+    } catch (err) {
+      console.warn("Failed to invalidate timelog cache:", err);
+    }
+
     await invalidateDashboardCache(user.id);
+    revalidatePath("/timelogs");
+    revalidatePath("/clients");
+    revalidatePath("/invoices");
+
     return newTimeLog;
   } catch (error) {
     throw new Error((error as Error).message);
@@ -135,13 +177,33 @@ export const getTimeLogs = async (
 export const deleteTimeLog = async (id: string) => {
   const user = await requireUser();
   try {
+    const log = await prisma.timeLog.findUnique({
+      where: { id, userId: user.id },
+      select: { clientId: true },
+    });
+
     await prisma.timeLog.delete({
       where: {
         id,
         userId: user.id,
       },
     });
+
+    if (log?.clientId) {
+      try {
+        const redis = getRedis();
+        await redis.del(`unbilled-timelogs:${user.id}:${log.clientId}`);
+        await redis.del(`timelog-count:${user.id}:${log.clientId}`);
+        await redis.del(`unbilled-logs:${user.id}:${log.clientId}`);
+      } catch (err) {
+        console.warn("Failed to invalidate timelog cache:", err);
+      }
+    }
+
     await invalidateDashboardCache(user.id);
+    revalidatePath("/timelogs");
+    revalidatePath("/clients");
+    revalidatePath("/invoices");
   } catch (error) {
     throw new Error((error as Error).message);
   }

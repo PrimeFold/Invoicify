@@ -105,26 +105,26 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
   return (
     <div className="glass-panel overflow-hidden border-line/80 shadow-md">
       {/* Top status bar */}
-      <div className="flex items-center justify-between border-b border-line/60 bg-canvas/40 px-5 py-3.5">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between border-b border-line/60 bg-canvas/40 px-5 py-4">
+        <div className="flex items-center gap-3.5">
           <div
-            className={`grid size-8 place-items-center rounded-xl border transition-all ${
+            className={`grid size-9 place-items-center rounded-xl border transition-all ${
               isTracking
                 ? "border-status-pending-border bg-status-pending-bg text-status-pending shadow-[0_0_12px_var(--status-pending-border)]"
-                : "border-line/60 bg-surface/80 text-txt-muted"
+                : "border-line/60 bg-surface/80 text-primary"
             }`}
           >
-            <Clock className="size-4" />
+            <Clock className="size-4.5" />
           </div>
 
           <div>
-            <p className="font-sans text-xs font-semibold text-txt-primary tracking-tight">
-              {isTracking ? "Timer running" : "Time tracker"}
-            </p>
+            <h2 className="font-sans text-base sm:text-lg font-bold text-txt-primary tracking-tight">
+              {isTracking ? "Timer Running" : "Time Tracker"}
+            </h2>
 
-            <p className="mt-0.5 font-sans text-[10px] text-txt-muted">
+            <p className="mt-0.5 font-sans text-xs text-txt-muted">
               {isTracking
-                ? "Currently tracking your work session"
+                ? "Currently tracking your active work session"
                 : "Track billable time against a client"}
             </p>
           </div>
@@ -132,7 +132,7 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
 
         {/* Timer readout */}
         <div
-          className={`font-mono text-xl font-bold tracking-tight ${
+          className={`font-mono text-2xl font-bold tracking-tight ${
             isTracking ? "text-status-pending" : "text-txt-primary"
           }`}
         >
@@ -141,10 +141,10 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
       </div>
 
       {/* Main controls */}
-      <div className="p-4.5">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          {/* Description */}
-          <div className="flex h-10 min-w-0 flex-1 items-center rounded-xl border border-line/60 bg-canvas/60 px-3.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
+      <div className="p-5">
+        <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center">
+          {/* Description Input */}
+          <div className="flex h-10.5 min-w-0 flex-1 items-center rounded-xl border border-line/60 bg-canvas/60 px-3.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
             <input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -154,13 +154,13 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
             />
           </div>
 
-          {/* Client */}
-          <div className="flex h-10 w-full items-center rounded-xl border border-line/60 bg-canvas/60 px-3.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 lg:w-56">
+          {/* Client Select */}
+          <div className="flex h-10.5 w-full items-center rounded-xl border border-line/60 bg-canvas/60 px-3.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 lg:w-60">
             <select
               value={clientId}
               onChange={(event) => setClientId(event.target.value)}
               disabled={isTracking || isSaving || clients.length === 0}
-              className="w-full cursor-pointer bg-transparent font-sans text-xs text-txt-primary outline-none disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full cursor-pointer bg-transparent font-sans text-xs font-medium text-txt-primary outline-none disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="" disabled className="bg-surface text-txt-primary">
                 {clients.length === 0
@@ -169,7 +169,7 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
               </option>
 
               {clients.map((client) => (
-                <option key={client.id} value={client.id} className="bg-surface text-txt-primary">
+                <option key={client.id} value={client.id} className="bg-surface text-txt-primary font-sans">
                   {client.name}
                 </option>
               ))}
@@ -181,7 +181,7 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
             type="button"
             disabled={isSaving || (isTracking ? false : !canStart)}
             onClick={isTracking ? stopTimer : startTimer}
-            className={`h-10 shrink-0 cursor-pointer gap-2 rounded-xl px-4 font-sans text-xs font-semibold active-press transition-all shadow-sm ${
+            className={`h-10.5 shrink-0 cursor-pointer gap-2 rounded-xl px-5 font-sans text-xs font-semibold active-press transition-all shadow-xs ${
               isTracking
                 ? "border border-status-overdue-border bg-status-overdue-bg text-status-overdue hover:bg-status-overdue-bg/80"
                 : "border border-status-paid-border bg-status-paid-bg text-status-paid hover:bg-status-paid-bg/80"
@@ -205,7 +205,7 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
 
         {/* Error */}
         {error && (
-          <div className="mt-3 rounded-xl border border-status-overdue-border bg-status-overdue-bg p-3">
+          <div className="mt-3.5 rounded-xl border border-status-overdue-border bg-status-overdue-bg p-3">
             <p className="font-sans text-xs font-medium text-status-overdue">{error}</p>
           </div>
         )}

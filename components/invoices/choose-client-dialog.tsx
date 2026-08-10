@@ -44,6 +44,8 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
     "select-client"
   );
 
+  const selectedClient = clients.find((client) => client.id === clientId);
+
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
 
@@ -52,17 +54,17 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
     setLoading(true);
 
     try {
-      const selectedClient = clients.find((client) => client.id === clientId);
+      const selected = clients.find((client) => client.id === clientId);
 
       const logs = await getUnbilledTimeLogs(clientId);
 
       if (!logs || logs.length === 0) {
-        setClientName(selectedClient?.name ?? "");
+        setClientName(selected?.name ?? "");
         setAvailable(false);
         return;
       }
 
-      setClientName(selectedClient?.name ?? "");
+      setClientName(selected?.name ?? "");
       setTimeLogs(logs);
       setAvailable(true);
       setStep("create-invoice");
@@ -97,40 +99,38 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
     setClientName(null);
   };
 
-  /*
-   * EMPTY STATE:
-   * No clients exist at all.
-   */
   if (clients.length === 0) {
     return (
       <>
         <Button
           onClick={() => setOpen(true)}
           type="button"
-          className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-txt-primary px-3 font-mono text-xs font-medium text-canvas hover:opacity-90"
+          className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-primary px-3.5 font-sans text-xs font-semibold text-primary-foreground hover:opacity-90 active-press shadow-xs"
         >
           <Plus className="size-3.5" />
           Create Invoice
         </Button>
 
         <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md glass-panel p-6 shadow-2xl">
             <DialogHeader>
-              <DialogTitle>No clients found</DialogTitle>
+              <DialogTitle className="font-sans text-base font-semibold text-txt-primary">
+                No clients found
+              </DialogTitle>
 
-              <DialogDescription>
+              <DialogDescription className="font-sans text-xs text-txt-secondary">
                 You need to create a client before you can generate an invoice.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-              <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-muted">
-                <Users className="size-5 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line/80 bg-canvas/40 p-8 text-center">
+              <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Users className="size-5" />
               </div>
 
-              <p className="font-mono text-sm font-medium">No clients yet</p>
+              <p className="font-sans text-sm font-semibold text-txt-primary">No clients yet</p>
 
-              <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+              <p className="mt-1 max-w-xs font-sans text-xs text-txt-muted">
                 Add a client first, then you'll be able to create invoices for
                 their work.
               </p>
@@ -146,50 +146,47 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
       <Button
         onClick={() => setOpen(true)}
         type="button"
-        className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-txt-primary px-3 font-mono text-xs font-medium text-canvas hover:opacity-90"
+        className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-primary px-3.5 font-sans text-xs font-semibold text-primary-foreground hover:opacity-90 active-press shadow-xs"
       >
         <Plus className="size-3.5" />
         Create Invoice
       </Button>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          {/*
-           * EMPTY STATE:
-           * Client exists, but selected client has no
-           * unbilled time logs.
-           */}
+        <DialogContent className="sm:max-w-md glass-panel p-6 shadow-2xl">
           {!available ? (
             <>
               <DialogHeader>
-                <DialogTitle>No unbilled time logs</DialogTitle>
+                <DialogTitle className="font-sans text-base font-semibold text-txt-primary">
+                  No unbilled time logs
+                </DialogTitle>
 
-                <DialogDescription>
+                <DialogDescription className="font-sans text-xs text-txt-secondary">
                   There are no unbilled time logs for{" "}
-                  <span className="font-medium text-foreground">
+                  <span className="font-semibold text-txt-primary">
                     {clientName}
                   </span>
                   .
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-muted">
-                  <Users className="size-5 text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line/80 bg-canvas/40 p-8 text-center">
+                <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-status-pending-bg text-status-pending border border-status-pending-border">
+                  <Users className="size-5" />
                 </div>
 
-                <p className="font-mono text-sm font-medium">
+                <p className="font-sans text-sm font-semibold text-txt-primary">
                   Nothing to invoice
                 </p>
 
-                <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                <p className="mt-1 max-w-xs font-sans text-xs text-txt-muted">
                   This client doesn't have any unbilled time logs yet.
                 </p>
 
                 <Button
                   type="button"
                   variant="outline"
-                  className="mt-5"
+                  className="mt-5 active-press rounded-xl border-line/80 bg-surface/80 text-xs font-sans font-medium"
                   onClick={resetEmptyState}
                 >
                   Choose another client
@@ -199,9 +196,11 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
           ) : step === "select-client" ? (
             <>
               <DialogHeader>
-                <DialogTitle>Select a client</DialogTitle>
+                <DialogTitle className="font-sans text-base font-semibold text-txt-primary">
+                  Select a client
+                </DialogTitle>
 
-                <DialogDescription>
+                <DialogDescription className="font-sans text-xs text-txt-secondary">
                   Choose a client to find their unbilled work and prepare an
                   invoice.
                 </DialogDescription>
@@ -211,7 +210,7 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
                 <div className="space-y-2">
                   <Label
                     htmlFor="invoice-client"
-                    className="font-mono text-xs font-medium text-muted-foreground"
+                    className="apple-label-caps text-[10px]"
                   >
                     Client
                   </Label>
@@ -220,13 +219,15 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
                     value={clientId ?? ""}
                     onValueChange={(value) => setClientId(value)}
                   >
-                    <SelectTrigger id="invoice-client" className="h-10 w-full">
-                      <SelectValue placeholder="Select a client..." />
+                    <SelectTrigger id="invoice-client" className="h-10 w-full rounded-xl border-line/80 bg-canvas/60 font-sans text-xs">
+                      <SelectValue placeholder="Select a client...">
+                        {selectedClient?.name}
+                      </SelectValue>
                     </SelectTrigger>
 
-                    <SelectContent>
+                    <SelectContent className="glass-panel">
                       {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
+                        <SelectItem key={client.id} value={client.id} label={client.name} className="font-sans text-xs">
                           {client.name}
                         </SelectItem>
                       ))}
@@ -234,18 +235,19 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
                   </Select>
                 </div>
 
-                <div className="rounded-md border bg-muted/30 px-3 py-2.5">
-                  <p className="text-xs text-muted-foreground">
+                <div className="rounded-xl border border-line/60 bg-canvas/40 px-3.5 py-3">
+                  <p className="font-sans text-xs text-txt-muted">
                     We'll only show time logs that haven't already been billed
                     to this client.
                   </p>
                 </div>
 
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-2.5">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => setOpen(false)}
+                    className="active-press rounded-xl font-sans text-xs font-medium text-txt-secondary hover:text-txt-primary"
                   >
                     Cancel
                   </Button>
@@ -254,7 +256,7 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
                     type="button"
                     disabled={!clientId || loading}
                     onClick={handleClick}
-                    className="min-w-24"
+                    className="min-w-24 active-press rounded-xl bg-primary text-primary-foreground font-sans text-xs font-semibold shadow-xs"
                   >
                     {loading ? "Loading..." : "Proceed"}
                   </Button>
@@ -262,13 +264,11 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
               </div>
             </>
           ) : (
-            /*
-             * STEP 2:
-             * Create invoice from selected time logs.
-             */
             <CreateInvoiceDialog
               timeLogs={timeLogs}
               clientName={clientName ?? ""}
+              clientId={clientId ?? ""}
+              onClose={() => setOpen(false)}
             />
           )}
         </DialogContent>

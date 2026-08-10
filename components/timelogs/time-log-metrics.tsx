@@ -34,7 +34,7 @@ export function TimeLogMetrics({ metrics }: { metrics?: TimeLogMetrics }) {
         value={metrics ? formatCurrency(metrics.billedAmount) : "—"}
         note={
           metrics
-            ? `${metrics.billedHours} hours locked`
+            ? `${metrics.billedHours} hours billed`
             : "Connect invoiced time-log totals"
         }
       />

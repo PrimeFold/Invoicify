@@ -1,3 +1,5 @@
+"use client";
+
 import {
   User,
   TriangleAlert,
@@ -6,6 +8,8 @@ import {
   LogOut,
   CheckCircle2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
-import { Badge } from "../ui/badge";
 
 const AccountDropDown = ({
   name,
@@ -25,6 +28,19 @@ const AccountDropDown = ({
   email: string;
   emailVerified: boolean;
 }) => {
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/login");
+          router.refresh();
+        },
+      },
+    });
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer rounded-full outline-none active-press">
@@ -35,7 +51,7 @@ const AccountDropDown = ({
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-68 glass-panel p-2 shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 origin-top-right"
+        className="w-68 glass-panel p-2 shadow-2xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95 origin-top-right font-sans"
       >
         <div className="mb-2 rounded-xl border border-line/60 bg-canvas/60 p-3">
           <p className="text-xs font-semibold text-txt-primary tracking-tight">{name}</p>
@@ -69,7 +85,10 @@ const AccountDropDown = ({
         <DropdownMenuSeparator className="my-1.5 bg-line/60" />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive active-press transition-colors">
+          <DropdownMenuItem
+            onClick={handleSignOut}
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive active-press transition-colors"
+          >
             <LogOut size={15} />
             <span>Sign out</span>
           </DropdownMenuItem>

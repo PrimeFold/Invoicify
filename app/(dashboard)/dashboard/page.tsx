@@ -1,45 +1,35 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { getDashboardData } from "@/app/actions/dashboard";
 import Link from "next/link";
 import {
-  Clock,
-  TrendingUp,
-  AlertCircle,
-  Building2,
   ArrowUpRight,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Filter,
+  MoreVertical,
   Plus,
-  ChevronRight,
+  ReceiptText,
+  Search,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
+import { Card } from "@/components/ui/card";
+import { authClient } from "@/lib/auth";
 import {
   Bar,
-  BarChart,
   CartesianGrid,
+  ComposedChart,
+  Line,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-
-// Chart Config
-const chartConfig = {
-  collected: { label: "Collected", color: "var(--status-paid)" },
-  unbilled: { label: "Unbilled", color: "var(--status-pending)" },
-} satisfies ChartConfig;
 
 type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 
@@ -59,11 +49,12 @@ function formatRelativeTime(date: Date) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-function createMonthlyData(data: DashboardData | null) {
-  const months = Array.from({ length: 6 }, (_, index) => {
+// 12 Months Freelancer Cashflow & Billable Hours Calculator
+function createFreelancerMonthlyData(data: DashboardData | null) {
+  const months = Array.from({ length: 12 }, (_, index) => {
     const date = new Date();
     date.setDate(1);
-    date.setMonth(date.getMonth() - (5 - index));
+    date.setMonth(date.getMonth() - (11 - index));
     return date;
   });
 
@@ -76,35 +67,58 @@ function createMonthlyData(data: DashboardData | null) {
         ),
         collected: 0,
         unbilled: 0,
+        hours: 0,
       },
     ])
   );
 
   for (const timeLog of data?.timeLogs ?? []) {
-    if (timeLog.status !== "UNBILLED") continue;
-
     const date = new Date(timeLog.startTime);
-    const total = totals.get(`${date.getFullYear()}-${date.getMonth()}`);
-    if (total)
-      total.unbilled +=
-        (timeLog.durationMinutes / 60) * timeLog.client.hourlyRate;
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const total = totals.get(key);
+    const logHours = timeLog.durationMinutes / 60;
+
+    if (total) {
+      total.hours += logHours;
+      if (timeLog.status === "UNBILLED") {
+        total.unbilled += logHours * (timeLog.client?.hourlyRate || 0);
+      }
+    }
   }
 
   for (const invoice of data?.invoices ?? []) {
     if (invoice.status !== "PAID") continue;
 
     const date = new Date(invoice.createdAt);
-    const total = totals.get(`${date.getFullYear()}-${date.getMonth()}`);
-    if (total) total.collected += invoice.totalAmount;
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const total = totals.get(key);
+    if (total) {
+      total.collected += invoice.totalAmount;
+    }
   }
 
-  return [...totals.values()];
+  const result = [...totals.values()];
+
+  return result.map((item) => {
+    return {
+      ...item,
+      collected: item.collected,
+      hours: Number(item.hours.toFixed(1)),
+    };
+  });
 }
 
 export default function DashboardPage() {
-  const [dashboardData, setDashboardData] =
-    React.useState<DashboardData | null>(null);
-  const [hasLoadError, setHasLoadError] = React.useState(false);
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const userName = user?.name || "Freelancer";
+  const userEmail = user?.email || "user@invoicify.dev";
+
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [hasLoadError, setHasLoadError] = useState(false);
+  const [timeFilter, setTimeFilter] = useState<"12m" | "30d" | "7d" | "24h">("12m");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
 
   React.useEffect(() => {
     let isCurrent = true;
@@ -129,11 +143,13 @@ export default function DashboardPage() {
   const clients = dashboardData?.clients ?? [];
   const timeLogs = dashboardData?.timeLogs ?? [];
   const invoices = dashboardData?.invoices ?? [];
-  const monthlyData = createMonthlyData(dashboardData);
+  const chartData = createFreelancerMonthlyData(dashboardData);
   const isLoading = dashboardData === null && !hasLoadError;
 
+  // Calculate Client Metrics
   const unbilledMinutesByClient = new Map<string, number>();
   const lastActivityByClient = new Map<string, Date>();
+
   for (const timeLog of timeLogs) {
     if (timeLog.status === "UNBILLED") {
       unbilledMinutesByClient.set(
@@ -160,49 +176,60 @@ export default function DashboardPage() {
     };
   });
 
-  const unpaidInvoices = invoices.filter(
-    (invoice) => invoice.status === "UNPAID"
-  );
-  const now = new Date();
-  const paidInvoicesThisMonth = invoices.filter((invoice) => {
-    const issuedAt = new Date(invoice.createdAt);
-    return (
-      invoice.status === "PAID" &&
-      issuedAt.getFullYear() === now.getFullYear() &&
-      issuedAt.getMonth() === now.getMonth()
-    );
-  });
-  const collectedThisMonth = paidInvoicesThisMonth.reduce(
-    (total, invoice) => total + invoice.totalAmount,
+  const totalUnbilledAmount = activeClients.reduce(
+    (sum, c) => sum + c.unbilledAmount,
     0
   );
   const totalUnbilledHours = activeClients.reduce(
-    (total, client) => total + client.unbilledHours,
+    (sum, c) => sum + c.unbilledHours,
     0
-  );
-  const totalUnbilledAmount = activeClients.reduce(
-    (total, client) => total + client.unbilledAmount,
-    0
-  );
-  const averageHourlyRate =
-    clients.length === 0
-      ? 0
-      : clients.reduce((total, client) => total + client.hourlyRate, 0) /
-        clients.length;
-  const hasChartData = monthlyData.some(
-    (month) => month.collected > 0 || month.unbilled > 0
   );
 
+  const filteredClients = activeClients.filter((client) =>
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleSelectClient = (id: string) => {
+    setSelectedClientIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedClientIds.length === filteredClients.length) {
+      setSelectedClientIds([]);
+    } else {
+      setSelectedClientIds(filteredClients.map((c) => c.id));
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      {/* 1. Header Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line/60 pb-6">
+    <div className="space-y-6 text-left font-sans selection:bg-primary/20">
+      {/* 1. Top Breadcrumb & Authenticated User Profile Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-xs text-txt-secondary font-medium">
+          <span className="flex items-center gap-1.5 text-txt-primary font-semibold">
+            <span className="size-6 rounded-full bg-primary/20 text-primary grid place-items-center text-[10px] font-bold">
+              {userName.substring(0, 2).toUpperCase()}
+            </span>
+            {userName}
+          </span>
+          <span className="text-txt-muted">›</span>
+          <span className="text-txt-primary font-semibold">Dashboard</span>
+        </div>
+
+      </div>
+
+      {/* 2. Welcome Header Greeting ME (The Logged-In Freelancer) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
         <div>
-          <h1 className="apple-heading text-txt-primary">
-            Dashboard
+          <h1 className="text-2xl sm:text-3xl font-bold text-txt-primary tracking-tight font-sans">
+            Welcome back, {userName.split(" ")[0]}
           </h1>
-          <p className="text-xs text-txt-secondary mt-1 tracking-tight">
-            Overview of active clients, unbilled time, and revenue metrics.
+          <p className="text-xs sm:text-sm text-txt-secondary mt-1 tracking-tight">
+            Here's an overview of your active clients, unbilled hours, and collected revenue trajectory.
           </p>
         </div>
 
@@ -210,14 +237,14 @@ export default function DashboardPage() {
           <Link href="/timelogs">
             <Button
               variant="outline"
-              className="bg-surface/80 border-line/80 text-txt-primary hover:bg-surface-hover font-sans text-xs h-9 px-3.5 rounded-xl cursor-pointer inline-flex items-center gap-2 active-press shadow-xs"
+              className="bg-surface/80 border-line/80 text-txt-primary hover:bg-surface-hover font-sans text-xs h-9 px-3.5 rounded-xl cursor-pointer inline-flex items-center gap-2 active-press shadow-2xs"
             >
               <Clock className="size-3.5 text-txt-muted" />
               Log Hours
             </Button>
           </Link>
           <Link href="/invoices">
-            <Button className="bg-primary text-primary-foreground hover:opacity-90 font-sans text-xs h-9 px-3.5 rounded-xl cursor-pointer inline-flex items-center gap-2 active-press shadow-sm">
+            <Button className="bg-primary text-primary-foreground hover:opacity-90 font-sans text-xs h-9 px-3.5 rounded-xl cursor-pointer inline-flex items-center gap-2 active-press shadow-xs">
               <Plus className="size-3.5" />
               New Invoice
             </Button>
@@ -225,408 +252,347 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 2. Top Metric Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          label="Unbilled Revenue"
-          value={formatCurrency(totalUnbilledAmount)}
-          subtext={`${totalUnbilledHours.toFixed(2)} hrs pending invoice`}
-          status="pending"
-          icon={Clock}
-        />
-        <MetricCard
-          label="Collected This Month"
-          value={formatCurrency(collectedThisMonth)}
-          subtext={`${paidInvoicesThisMonth.length} paid invoices`}
-          status="paid"
-          icon={TrendingUp}
-        />
-        <MetricCard
-          label="Unpaid Invoices"
-          value={formatCurrency(
-            unpaidInvoices.reduce(
-              (total, invoice) => total + invoice.totalAmount,
-              0
-            )
-          )}
-          subtext={`${unpaidInvoices.length} invoices require action`}
-          status="pending"
-          icon={AlertCircle}
-        />
-        <MetricCard
-          label="Active Clients"
-          value={`${clients.length} Accounts`}
-          subtext={`Avg rate ${formatCurrency(averageHourlyRate)}/hr`}
-          status="normal"
-          icon={Building2}
-        />
-      </div>
-
-      {/* 3. Middle Section: Active Clients + Action Needed Invoices */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Active Client Table (2 Cols) */}
-        <Card className="lg:col-span-2 gap-0 rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left overflow-hidden">
-          <CardHeader className="p-5 border-b border-line/60 flex-row items-center justify-between">
-            <div>
-              <CardTitle className="apple-label-caps text-[10px]">
-                Active Client Accounts
-              </CardTitle>
-              <CardDescription className="text-sm font-semibold text-txt-primary mt-1">
-                Current Client Work & Accrued Hours
-              </CardDescription>
+      {/* 3. Main Freelancer Financial Chart: Revenue Collected & Logged Hours */}
+      <Card className="rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md p-6 shadow-sm text-left overflow-hidden">
+        {/* Chart Header Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-txt-primary tracking-tight font-sans">
+                Revenue & Logged Hours Trajectory
+              </h2>
             </div>
-            <Link
-              href="/clients"
-              className="text-xs text-txt-muted hover:text-primary transition-colors inline-flex items-center gap-1 active-press"
-            >
-              View All <ChevronRight className="size-3.5" />
-            </Link>
-          </CardHeader>
+            <p className="font-sans text-xs text-txt-secondary mt-0.5">
+              Unbilled Accrual: <strong className="text-status-pending">{formatCurrency(totalUnbilledAmount)}</strong> ({totalUnbilledHours.toFixed(1)} hrs)
+            </p>
+          </div>
 
+          {/* Time Segmented Control Filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center rounded-xl border border-line/80 bg-canvas/60 p-1 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setTimeFilter("12m")}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  timeFilter === "12m"
+                    ? "bg-surface text-txt-primary shadow-xs font-semibold"
+                    : "text-txt-muted hover:text-txt-primary"
+                }`}
+              >
+                12 months
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeFilter("30d")}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  timeFilter === "30d"
+                    ? "bg-surface text-txt-primary shadow-xs font-semibold"
+                    : "text-txt-muted hover:text-txt-primary"
+                }`}
+              >
+                30 days
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeFilter("7d")}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  timeFilter === "7d"
+                    ? "bg-surface text-txt-primary shadow-xs font-semibold"
+                    : "text-txt-muted hover:text-txt-primary"
+                }`}
+              >
+                7 days
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeFilter("24h")}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  timeFilter === "24h"
+                    ? "bg-surface text-txt-primary shadow-xs font-semibold"
+                    : "text-txt-muted hover:text-txt-primary"
+                }`}
+              >
+                24 hours
+              </button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 rounded-xl border-line/80 bg-surface/80 text-xs font-medium text-txt-primary hover:bg-surface-hover active-press"
+            >
+              <Filter className="size-3.5 mr-1.5 text-txt-muted" />
+              Filters
+            </Button>
+          </div>
+        </div>
+
+        {/* Purple Bar Chart (Revenue $) + Dashed Line Overlay (Logged Hours) */}
+        <div className="h-[260px] w-full pt-2">
+          {isLoading ? (
+            <div className="grid h-full place-items-center text-xs text-txt-muted font-sans">
+              Loading cashflow data…
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={12}
+                  stroke="var(--text-muted)"
+                  fontSize={11}
+                  fontFamily="sans-serif"
+                />
+                <YAxis
+                  yAxisId="left"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  stroke="var(--text-muted)"
+                  fontSize={11}
+                  fontFamily="sans-serif"
+                  tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  stroke="#7f56d9"
+                  fontSize={11}
+                  fontFamily="sans-serif"
+                  tickFormatter={(val) => `${val}h`}
+                />
+                <Tooltip
+                  cursor={{ fill: "var(--surface-hover)", opacity: 0.4 }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="rounded-xl border border-line/80 bg-surface/95 p-3 shadow-xl backdrop-blur-md text-xs font-sans space-y-1">
+                          <p className="font-bold text-txt-primary">{data.month}</p>
+                          <p className="text-status-paid font-mono font-semibold">
+                            Collected: {formatCurrency(data.collected)}
+                          </p>
+                          <p className="text-primary font-mono font-semibold">
+                            Billable Work: {data.hours} hrs logged
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                {/* Revenue Collected ($) Bar Chart */}
+                <Bar
+                  yAxisId="left"
+                  dataKey="collected"
+                  fill="#7f56d9"
+                  radius={[6, 6, 0, 0]}
+                  barSize={14}
+                />
+                {/* Billable Logged Hours (hrs) Dashed Line Overlay */}
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="#7f56d9"
+                  strokeWidth={2.5}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  activeDot={{ r: 4, fill: "#7f56d9" }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </Card>
+
+      {/* 4. Recently Active Client Accounts & Work Entries */}
+      <div className="space-y-4 pt-2">
+        {/* Header Title + Search Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-txt-primary tracking-tight font-sans">
+              Active Client Accounts
+            </h2>
+            <p className="text-xs text-txt-secondary">
+              Track client hourly rates, unbilled accrued time, and billable work status.
+            </p>
+          </div>
+
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3.5 top-2.5 size-3.5 text-txt-muted" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search clients..."
+              className="h-9 w-full rounded-xl border border-line/80 bg-surface/80 pl-9 pr-9 font-sans text-xs text-txt-primary placeholder:text-txt-muted focus:outline-none focus:ring-1 focus:ring-primary/40 shadow-2xs"
+            />
+            <kbd className="absolute right-3 top-2.5 pointer-events-none inline-flex h-4 select-none items-center gap-0.5 rounded border border-line/80 bg-canvas px-1 font-mono text-[9px] font-medium text-txt-muted">
+              ⌘K
+            </kbd>
+          </div>
+        </div>
+
+        {/* Filter Toolbar Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line/80 bg-surface/60 p-2.5 backdrop-blur-md">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 rounded-xl border border-line/80 bg-surface px-3 py-1.5 text-xs text-txt-primary font-medium shadow-2xs">
+              <Filter className="size-3.5 text-txt-muted" />
+              <span>Filter</span>
+              <ChevronDown className="size-3 text-txt-muted ml-1" />
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 rounded-xl border border-line/80 bg-surface px-3 py-1.5 text-xs text-txt-primary font-medium shadow-2xs">
+              <span>Equals</span>
+              <ChevronDown className="size-3 text-txt-muted ml-1" />
+            </div>
+
+            <input
+              type="text"
+              placeholder="Enter a value"
+              className="h-8 rounded-xl border border-line/80 bg-surface px-3 font-sans text-xs text-txt-primary placeholder:text-txt-muted focus:outline-none focus:ring-1 focus:ring-primary/40 shadow-2xs"
+            />
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedClientIds([]);
+            }}
+            className="h-8 px-3 font-sans text-xs font-semibold text-txt-secondary hover:text-txt-primary active-press rounded-xl"
+          >
+            Clear all
+          </Button>
+        </div>
+
+        {/* Selected Count Indicator */}
+        <div className="flex items-center gap-2 px-1">
+          <button
+            type="button"
+            onClick={toggleSelectAll}
+            className="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary shadow-2xs active-press"
+          >
+            <span className="size-2 rounded-full bg-primary" />
+            <span>{selectedClientIds.length} selected</span>
+            <ChevronDown className="size-3" />
+          </button>
+        </div>
+
+        {/* Client Accounts Table */}
+        <Card className="overflow-hidden rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse font-sans text-xs">
+            <table className="w-full border-collapse text-left font-sans text-xs">
               <thead>
                 <tr className="border-b border-line/60 bg-canvas/40 apple-label-caps text-[9px] text-txt-muted">
-                  <th className="pt-2.5 pb-2.5 px-5">Client</th>
-                  <th className="pt-2.5 pb-2.5 px-4">Rate</th>
-                  <th className="pt-2.5 pb-2.5 px-4">Unbilled Time</th>
-                  <th className="pt-2.5 pb-2.5 px-4">Unbilled Total</th>
-                  <th className="pt-2.5 pb-2.5 px-5 text-right">Action</th>
+                  <th className="w-10 px-4 py-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        filteredClients.length > 0 &&
+                        selectedClientIds.length === filteredClients.length
+                      }
+                      onChange={toggleSelectAll}
+                      className="size-4 rounded border-line text-primary focus:ring-primary/40 accent-primary cursor-pointer"
+                    />
+                  </th>
+                  <th className="px-4 py-3">Client Account</th>
+                  <th className="px-4 py-3">Hourly Rate</th>
+                  <th className="px-4 py-3">Unbilled Time</th>
+                  <th className="px-4 py-3">Unbilled Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line/40">
                 {isLoading ? (
                   <tr>
-                    <td
-                      colSpan={5}
-                      className="px-5 py-10 text-center text-txt-muted font-sans"
-                    >
-                      Loading client details…
+                    <td colSpan={5} className="px-4 py-10 text-center text-txt-muted font-sans">
+                      Loading client accounts…
                     </td>
                   </tr>
-                ) : activeClients.length === 0 ? (
+                ) : filteredClients.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center">
-                      <p className="font-sans text-sm font-medium text-txt-primary">
-                        {hasLoadError
-                          ? "No client data available"
-                          : "No clients yet"}
+                    <td colSpan={5} className="px-4 py-10 text-center font-sans">
+                      <p className="text-sm font-medium text-txt-primary">
+                        No client accounts found
                       </p>
                       <p className="mt-1 text-xs text-txt-muted">
-                        {hasLoadError
-                          ? "Try refreshing the dashboard."
-                          : "Add a client to start tracking billable work."}
+                        Add a client or adjust your search query.
                       </p>
                     </td>
                   </tr>
                 ) : (
-                  activeClients.map((client) => (
-                    <tr
-                      key={client.id}
-                      className="hover:bg-surface-hover/60 active-press transition-colors"
-                    >
-                      <td className="py-3 px-5">
-                        <p className="font-sans font-semibold text-txt-primary text-xs tracking-tight">
-                          {client.name}
-                        </p>
-                        <p className="text-[10px] text-txt-muted">
-                          {client.lastActive
-                            ? `Active ${formatRelativeTime(client.lastActive)}`
-                            : "No logged work yet"}
-                        </p>
-                      </td>
-                      <td className="py-3 px-4 text-txt-secondary font-sans text-xs">
-                        ${client.hourlyRate.toFixed(2)}/hr
-                      </td>
-                      <td className="py-3 px-4 text-txt-secondary font-sans text-xs">
-                        {client.unbilledHours > 0 ? (
-                          `${client.unbilledHours} hrs`
-                        ) : (
-                          <span className="text-txt-muted">0 hrs</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 font-sans text-xs font-semibold">
-                        {client.unbilledAmount > 0 ? (
-                          <span className="text-status-pending">
-                            {formatCurrency(client.unbilledAmount)}
-                          </span>
-                        ) : (
-                          <span className="text-txt-muted">$0.00</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-5 text-right">
-                        <Link href={`/invoices/new?clientId=${client.id}`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={client.unbilledHours === 0}
-                            className="h-7 text-[11px] px-2.5 text-txt-secondary hover:text-txt-primary border border-line/60 bg-canvas/60 hover:bg-surface-hover active-press disabled:opacity-30 rounded-lg"
-                          >
-                            Bill Hours
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
+                  filteredClients.map((client) => {
+                    const isSelected = selectedClientIds.includes(client.id);
+
+                    return (
+                      <tr
+                        key={client.id}
+                        onClick={() => toggleSelectClient(client.id)}
+                        className={`cursor-pointer transition-colors duration-150 ${
+                          isSelected
+                            ? "bg-primary/5"
+                            : "hover:bg-surface-hover/60"
+                        }`}
+                      >
+                        <td className="w-10 px-4 py-3.5 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectClient(client.id)}
+                            className="size-4 rounded border-line text-primary focus:ring-primary/40 accent-primary cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="grid size-8 place-items-center rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-xs shrink-0">
+                              {client.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-sans text-xs font-semibold text-txt-primary truncate">
+                                {client.name}
+                              </p>
+                              <p className="font-mono text-[10px] text-txt-muted truncate mt-0.5">
+                                {client.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 font-mono text-[11px] font-semibold text-txt-primary">
+                          ${client.hourlyRate.toFixed(2)}/hr
+                        </td>
+                        <td className="px-4 py-3.5 font-mono text-[11px] text-txt-secondary">
+                          {client.unbilledHours > 0 ? (
+                            <span className="font-semibold text-txt-primary">{client.unbilledHours.toFixed(1)} hrs</span>
+                          ) : (
+                            <span className="text-txt-muted">0 hrs</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5 font-mono text-[11px]">
+                          {client.unbilledAmount > 0 ? (
+                            <span className="font-bold text-status-pending">
+                              {formatCurrency(client.unbilledAmount)}
+                            </span>
+                          ) : (
+                            <span className="text-txt-muted">$0.00</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
         </Card>
-
-        {/* Pending Invoices (1 Col) */}
-        <Card className="rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left flex flex-col justify-between overflow-hidden">
-          <div>
-            <CardHeader className="p-5 border-b border-line/60 flex-row items-center justify-between">
-              <div>
-                <CardTitle className="apple-label-caps text-[10px]">
-                  Action Required
-                </CardTitle>
-                <CardDescription className="text-sm font-semibold text-txt-primary mt-1">
-                  Unpaid Invoices
-                </CardDescription>
-              </div>
-              <span className="font-sans text-[10px] px-2.5 py-0.5 rounded-full border border-status-pending-border bg-status-pending-bg text-status-pending font-medium shadow-2xs">
-                {unpaidInvoices.length} Pending
-              </span>
-            </CardHeader>
-
-            <div className="p-5 space-y-3 text-xs">
-              {isLoading ? (
-                <p className="text-txt-muted font-sans">Loading invoices…</p>
-              ) : unpaidInvoices.length > 0 ? (
-                unpaidInvoices.map((inv) => (
-                  <div
-                    key={inv.id}
-                    className="p-3 rounded-xl border border-line/60 bg-canvas/60 flex items-center justify-between active-press hover:border-line"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-sans text-xs font-semibold text-txt-primary">
-                          {inv.id}
-                        </span>
-                        <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-status-pending-bg text-status-pending border border-status-pending-border">
-                          {inv.status}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-txt-muted mt-1">
-                        {inv.client.name} • Issued{" "}
-                        {new Intl.DateTimeFormat("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }).format(new Date(inv.createdAt))}
-                      </p>
-                    </div>
-                    <span className="font-sans text-xs font-semibold text-txt-primary">
-                      {formatCurrency(inv.totalAmount)}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div className="py-6 text-center">
-                  <p className="font-sans text-sm font-medium text-txt-primary">
-                    {hasLoadError
-                      ? "No invoice data available"
-                      : "No unpaid invoices"}
-                  </p>
-                  <p className="mt-1 text-xs text-txt-muted">
-                    {hasLoadError
-                      ? "Try refreshing the dashboard."
-                      : "You're all caught up."}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="p-4 border-t border-line/60 bg-canvas/30">
-            <Link href="/invoices">
-              <Button
-                variant="outline"
-                className="w-full bg-surface/80 border-line/80 text-txt-primary hover:bg-surface-hover font-sans text-xs h-9 justify-between cursor-pointer active-press rounded-xl"
-              >
-                <span>Manage Invoices</span>
-                <ArrowUpRight className="size-3.5 text-txt-muted" />
-              </Button>
-            </Link>
-          </div>
-        </Card>
       </div>
-
-      {/* 4. Bottom Section: Revenue Chart */}
-      <Card className="rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left overflow-hidden">
-        <CardHeader className="p-5 border-b border-line/60 flex-row items-center justify-between">
-          <div>
-            <CardTitle className="apple-label-caps text-[10px]">
-              Revenue History
-            </CardTitle>
-            <CardDescription className="text-sm font-semibold text-txt-primary mt-1">
-              Collected vs. Unbilled Trajectory (6 Months)
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="flex items-center gap-1.5 rounded-full border border-line/60 bg-canvas/60 px-2.5 py-1 text-txt-secondary text-[11px]">
-              <span className="size-1.5 rounded-full bg-status-paid shadow-[0_0_8px_var(--status-paid)]" />{" "}
-              Paid
-            </span>
-            <span className="flex items-center gap-1.5 rounded-full border border-line/60 bg-canvas/60 px-2.5 py-1 text-txt-secondary text-[11px]">
-              <span className="size-1.5 rounded-full bg-status-pending shadow-[0_0_8px_var(--status-pending)]" />{" "}
-              Unbilled
-            </span>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-5 pt-6">
-          {isLoading ? (
-            <div className="grid h-[240px] place-items-center font-sans text-xs text-txt-muted">
-              Loading revenue data…
-            </div>
-          ) : hasChartData ? (
-            <ChartContainer config={chartConfig} className="h-[240px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={monthlyData}
-                  margin={{ top: 12, right: 12, left: -10, bottom: 0 }}
-                  barGap={6}
-                >
-                  <defs>
-                    <linearGradient
-                      id="collected-bar-gradient"
-                      x1="0"
-                      x2="0"
-                      y1="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="var(--status-paid)"
-                        stopOpacity={1}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="var(--status-paid)"
-                        stopOpacity={0.75}
-                      />
-                    </linearGradient>
-                    <linearGradient
-                      id="unbilled-bar-gradient"
-                      x1="0"
-                      x2="0"
-                      y1="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="var(--status-pending)"
-                        stopOpacity={1}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="var(--status-pending)"
-                        stopOpacity={0.75}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    stroke="var(--line)"
-                    strokeDasharray="2 6"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={12}
-                    stroke="var(--text-muted)"
-                    fontSize={11}
-                    fontFamily="sans-serif"
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    stroke="var(--text-muted)"
-                    fontSize={11}
-                    fontFamily="sans-serif"
-                    tickFormatter={(value) => `$${value / 1000}k`}
-                  />
-                  <ChartTooltip
-                    content={<ChartTooltipContent indicator="dashed" />}
-                    cursor={{ fill: "var(--surface-hover)", fillOpacity: 0.45 }}
-                  />
-                  <Bar
-                    dataKey="collected"
-                    fill="url(#collected-bar-gradient)"
-                    radius={[6, 6, 2, 2]}
-                    maxBarSize={34}
-                  />
-                  <Bar
-                    dataKey="unbilled"
-                    fill="url(#unbilled-bar-gradient)"
-                    radius={[6, 6, 2, 2]}
-                    maxBarSize={34}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          ) : (
-            <div className="grid h-[240px] place-items-center text-center">
-              <div>
-                <p className="font-sans text-sm font-medium text-txt-primary">
-                  {hasLoadError
-                    ? "No cashflow data available"
-                    : "No revenue data yet"}
-                </p>
-                <p className="mt-1 text-xs text-txt-muted">
-                  {hasLoadError
-                    ? "Try refreshing the dashboard."
-                    : "Log time or create an invoice to populate this chart."}
-                </p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  subtext,
-  status,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  subtext: string;
-  status: "paid" | "pending" | "normal";
-  icon: React.ElementType;
-}) {
-  const statusStyles = {
-    paid: "text-status-paid",
-    pending: "text-status-pending",
-    normal: "text-txt-primary",
-  };
-
-  return (
-    <div className="glass-card p-4.5 text-left active-press">
-      <div className="flex items-center justify-between">
-        <span className="apple-label-caps text-[10px]">
-          {label}
-        </span>
-        <span className="grid size-7 place-items-center rounded-lg bg-canvas/60 border border-line/60 text-txt-muted shadow-2xs">
-          <Icon className="size-3.5" />
-        </span>
-      </div>
-      <p
-        className={`mt-2 text-2xl font-bold font-sans tracking-tight ${statusStyles[status]}`}
-      >
-        {value}
-      </p>
-      <p className="mt-1 text-xs text-txt-secondary tracking-tight">{subtext}</p>
     </div>
   );
 }

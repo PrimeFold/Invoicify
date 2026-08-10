@@ -1,6 +1,6 @@
 "use server";
+
 import PDFDocument from "pdfkit";
-import type { Invoice } from "@/types/invoice";
 import { Prisma } from "@/lib/generated/prisma/client";
 
 const formatCurrency = (amount: number) =>
@@ -16,7 +16,7 @@ export type InvoiceWithClientAndItems = Prisma.InvoiceGetPayload<{
 export const buildInvoicePdfBuffer = async (
   invoice: InvoiceWithClientAndItems
 ) => {
-  const doc = new PDFDocument({ margin: 40, size: "A4" });
+  const doc = new PDFDocument({ margin: 44, size: "A4" });
   const chunks: Buffer[] = [];
 
   return new Promise<Buffer>((resolve, reject) => {
@@ -27,44 +27,84 @@ export const buildInvoicePdfBuffer = async (
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    doc.font("Helvetica");
-    doc.fontSize(20).text("Invoice", { align: "left" });
-    doc.moveDown(0.5);
+    const primaryColor = "#000000";
+    const secondaryColor = "#6b7280";
+    const borderColor = "#e5e7eb";
+    const tableBgColor = "#f9fafb";
 
-    doc.fontSize(12).text(`Invoice #: ${invoice.invoiceNumber}`);
-    doc.text(`Date: ${invoice.createdAt.toISOString().slice(0, 10)}`);
-    doc.text(`Status: ${invoice.status}`);
-    doc.moveDown();
+    // 1. Top Decorative Bar
+    doc.rect(44, 44, 507, 4).fill("#000000");
 
-    doc.fontSize(12).text("Bill To:");
-    doc.text(invoice.client.name);
-    doc.text(invoice.client.email);
-    doc.moveDown();
+    // 2. Header Title & Invoice Meta
+    doc.font("Helvetica-Bold").fontSize(24).fillColor(primaryColor).text("INVOICE", 44, 64);
 
-    doc.font("Helvetica-Bold");
-    const tableTop = doc.y;
-    doc.text("Description", 40, tableTop);
-    doc.text("Hours", 300, tableTop);
-    doc.text("Rate", 380, tableTop);
-    doc.text("Line Total", 460, tableTop);
-    doc.moveDown(0.5);
-    doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke();
-    doc.moveDown(0.5);
+    const formattedDate = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(invoice.createdAt);
 
-    doc.font("Helvetica");
+    doc.font("Helvetica").fontSize(10).fillColor(secondaryColor);
+    doc.text(`Invoice Number: `, 360, 64, { continued: true });
+    doc.font("Helvetica-Bold").fillColor(primaryColor).text(invoice.invoiceNumber);
 
-    invoice.items.forEach((item) => {
-      const y = doc.y;
-      doc.text(item.description, 40, y, { width: 240 });
-      doc.text(item.hours.toFixed(2), 300, y);
-      doc.text(formatCurrency(item.rate), 380, y);
-      doc.text(formatCurrency(item.lineTotal), 460, y);
-      doc.moveDown();
+    doc.font("Helvetica").fillColor(secondaryColor);
+    doc.text(`Issue Date: `, 360, 78, { continued: true });
+    doc.font("Helvetica-Bold").fillColor(primaryColor).text(formattedDate);
+
+    doc.font("Helvetica").fillColor(secondaryColor);
+    doc.text(`Status: `, 360, 92, { continued: true });
+    doc.font("Helvetica-Bold").fillColor(invoice.status === "PAID" ? "#059669" : "#d97706").text(invoice.status);
+
+    doc.moveTo(44, 115).lineTo(551, 115).strokeColor(borderColor).lineWidth(1).stroke();
+
+    // 3. Billing Info (Billed To)
+    const billToTop = 130;
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(secondaryColor).text("BILLED TO", 44, billToTop);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor(primaryColor).text(invoice.client.name, 44, billToTop + 14);
+    doc.font("Helvetica").fontSize(10).fillColor(secondaryColor).text(invoice.client.email, 44, billToTop + 30);
+
+    const billFromTop = 130;
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(secondaryColor).text("ISSUED BY", 360, billFromTop);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor(primaryColor).text("Invoicify Platform", 360, billFromTop + 14);
+    doc.font("Helvetica").fontSize(10).fillColor(secondaryColor).text("billing@invoicify.dev", 360, billFromTop + 30);
+
+    // 4. Line Items Table Header
+    const tableHeaderTop = 200;
+    doc.rect(44, tableHeaderTop, 507, 24).fill(tableBgColor);
+
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(secondaryColor);
+    doc.text("DESCRIPTION", 54, tableHeaderTop + 7);
+    doc.text("HOURS", 320, tableHeaderTop + 7, { width: 50, align: "right" });
+    doc.text("RATE", 390, tableHeaderTop + 7, { width: 60, align: "right" });
+    doc.text("LINE TOTAL", 465, tableHeaderTop + 7, { width: 75, align: "right" });
+
+    // 5. Line Items Rows
+    let currentY = tableHeaderTop + 32;
+
+    invoice.items.forEach((item, index) => {
+      doc.font("Helvetica").fontSize(10).fillColor(primaryColor);
+      doc.text(item.description, 54, currentY, { width: 250 });
+      doc.text(item.hours.toFixed(1), 320, currentY, { width: 50, align: "right" });
+      doc.text(formatCurrency(item.rate), 390, currentY, { width: 60, align: "right" });
+      doc.font("Helvetica-Bold").text(formatCurrency(item.lineTotal), 465, currentY, { width: 75, align: "right" });
+
+      currentY += 22;
+      doc.moveTo(44, currentY - 4).lineTo(551, currentY - 4).strokeColor(borderColor).lineWidth(0.5).stroke();
     });
 
-    doc.moveDown(1);
-    doc.font("Helvetica-Bold").fontSize(12).text("Total", 380, doc.y);
-    doc.text(formatCurrency(invoice.totalAmount), 460, doc.y);
+    // 6. Total Summary Box
+    currentY += 16;
+    doc.moveTo(340, currentY).lineTo(551, currentY).strokeColor(borderColor).lineWidth(1).stroke();
+    currentY += 10;
+
+    doc.font("Helvetica-Bold").fontSize(11).fillColor(secondaryColor).text("TOTAL AMOUNT", 340, currentY);
+    doc.font("Helvetica-Bold").fontSize(16).fillColor(primaryColor).text(formatCurrency(invoice.totalAmount), 440, currentY - 3, { width: 111, align: "right" });
+
+    // 7. Footer
+    const footerY = 780;
+    doc.moveTo(44, footerY - 15).lineTo(551, footerY - 15).strokeColor(borderColor).lineWidth(0.5).stroke();
+    doc.font("Helvetica").fontSize(9).fillColor(secondaryColor).text("Thank you for your business!", 44, footerY, { align: "center" });
 
     doc.end();
   });
