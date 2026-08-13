@@ -3,10 +3,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 export async function proxy(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
   const isAuthRoute =
     request.nextUrl.pathname.startsWith("/api/auth") ||
     request.nextUrl.pathname.startsWith("/auth");
@@ -19,7 +15,21 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.includes("/api/invoices/public") ||
     request.nextUrl.pathname.includes("/preview/invoice");
 
-  if (!session?.user && !isAuthRoute && !isPublicRoute) {
+  if (isAuthRoute || isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  let session = null;
+  try {
+    session = await auth.api.getSession({
+      headers: request.headers,
+    });
+  } catch (error) {
+    console.warn("Proxy: Database connection issue bypassed on route:", request.nextUrl.pathname, error);
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (!session?.user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

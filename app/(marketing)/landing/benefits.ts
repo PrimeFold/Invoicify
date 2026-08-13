@@ -1,5 +1,6 @@
 export const benefits = [
-  "Multi-tenant PostgreSQL isolation per user",
-  "Atomic Prisma $transaction invoice assembly",
-  "Zero double-billed hours or manual math",
+  "No credit card required",
+  "Unlimited clients and invoices",
+  "Open source and self-hostable",
+  "Your data, your infrastructure",
 ];

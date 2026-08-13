@@ -1,17 +1,33 @@
-import { Brand } from "./landing/landing-page";
-import { requireUser } from "@/lib/auth/session";
-import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 import { SiGithub } from "react-icons/si";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { requireUser } from "@/lib/auth/session";
+import { Brand } from "./landing/landing-page";
 
 export default async function MarketLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const user = await requireUser().catch(() => null);
+  let user = null;
+  try {
+    const cookieStore = await cookies();
+    const hasSessionCookie = cookieStore
+      .getAll()
+      .some((c) => c.name.startsWith("better-auth"));
+    if (hasSessionCookie) {
+      user = await requireUser().catch(() => null);
+    }
+  } catch (error) {
+    console.warn(
+      "Database connection issue bypassed during session verification in marketing layout:",
+      error
+    );
+  }
+
   if (user) redirect("/dashboard");
 
   return (
@@ -40,9 +56,9 @@ export default async function MarketLayout({
       <div className="flex-1">{children}</div>
       <footer className="border-t border-line/60 py-8 px-6">
         <div className="max-w-6xl w-full mx-auto text-xs font-sans text-txt-muted flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p>Invoicify — Open Source Financial Telemetry</p>
+          <p>Invoicify — Time tracking and invoicing for freelancers</p>
           <p className="inline-flex items-center gap-2">
-            Crafted by PrimeFold <SiGithub className="size-3.5" />
+            Open Source <SiGithub className="size-3.5" />
           </p>
         </div>
       </footer>

@@ -43,7 +43,7 @@ export function TimeLogsTable({ logs }: { logs: TimeLogTableRow[] }) {
   }
 
   return (
-    <Card className="overflow-hidden rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 text-left shadow-sm">
+    <Card className="overflow-hidden rounded-2xl border border-line/70 bg-surface py-0 text-left">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left font-sans text-xs">
           <thead>
@@ -122,13 +122,13 @@ function TimeLogRow({
       </td>
       <td className="px-4 py-3.5">
         {billed ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-status-paid-border bg-status-paid-bg px-2.5 py-0.5 text-[10px] font-medium text-status-paid shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-status-paid-border bg-status-paid-bg px-2 py-0.5 text-[10px] font-medium text-status-paid">
             <CheckCircle2 className="size-3" />
             BILLED
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-status-pending-border bg-status-pending-bg px-2.5 py-0.5 text-[10px] font-medium text-status-pending shadow-2xs">
-            <span className="size-1.5 rounded-full bg-status-pending shadow-[0_0_6px_var(--status-pending)]" />
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-status-pending-border bg-status-pending-bg px-2 py-0.5 text-[10px] font-medium text-status-pending">
+            <span className="size-1.5 rounded-full bg-status-pending" />
             UNBILLED
           </span>
         )}

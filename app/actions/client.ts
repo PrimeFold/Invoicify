@@ -1,15 +1,14 @@
 //functions for all client related stuff..
 "use server";
 
-import { Prisma } from "@/lib/generated/prisma/client";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/auth";
 import { requireUser } from "@/lib/auth/session";
+import type { Prisma } from "@/lib/generated/prisma/client";
+import { getRedis } from "@/lib/redis";
 import type { Client } from "@/types/client";
 import type { PaginatedResult } from "@/types/pagination";
 import { clientSchema } from "../validations/zod";
-import { revalidatePath } from "next/cache";
-import { getRedis } from "@/lib/redis";
-import { toast } from "@/components/ui/toast";
 import { invalidateDashboardCache } from "./dashboard";
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -95,6 +94,22 @@ export const getClientInformation = async (clientId: string) => {
   }
 };
 
+export async function invalidateClientCache(userId: string) {
+  try {
+    const redis = getRedis();
+    const keys = await redis.keys(`clients:${userId}:*`);
+    const optionsKey = `options-clients:${userId}`;
+    const allKeys = [...keys, optionsKey];
+
+    if (allKeys.length > 0) {
+      await redis.del(...allKeys);
+    }
+    await invalidateDashboardCache(userId);
+  } catch (error) {
+    console.warn("Failed to invalidate client cache:", (error as Error).message);
+  }
+}
+
 export const createClient = async (client: Client) => {
   const user = await requireUser();
   const result = clientSchema.safeParse(client);
@@ -116,8 +131,9 @@ export const createClient = async (client: Client) => {
         hourlyRate: result.data.hourlyRate,
       } satisfies Prisma.ClientCreateInput,
     });
-    await invalidateDashboardCache(user.id);
+    await invalidateClientCache(user.id);
     revalidatePath("/clients");
+    revalidatePath("/dashboard");
 
     return newClient;
   } catch (error) {
@@ -158,9 +174,10 @@ export const updateClientName = async (clientId: string, name: string) => {
       },
     });
 
-    await invalidateDashboardCache(user.id);
+    await invalidateClientCache(user.id);
     revalidatePath("/clients");
     revalidatePath("/clients/[id]");
+    revalidatePath("/dashboard");
   } catch (error) {
     throw new Error((error as Error).message);
   }
@@ -169,21 +186,47 @@ export const updateClientName = async (clientId: string, name: string) => {
 export const deleteClient = async (clientId: string) => {
   const user = await requireUser();
   try {
-    const client = await prisma.client.delete({
-      where: {
-        id: clientId,
-        userId: user.id,
-      },
+    const client = await prisma.$transaction(async (tx) => {
+      // 1. Find all invoice IDs belonging to this client
+      const invoices = await tx.invoice.findMany({
+        where: { clientId, userId: user.id },
+        select: { id: true },
+      });
+      const invoiceIds = invoices.map((inv) => inv.id);
+
+      // 2. Delete invoice items for those invoices
+      if (invoiceIds.length > 0) {
+        await tx.invoiceItem.deleteMany({
+          where: { invoiceId: { in: invoiceIds } },
+        });
+      }
+
+      // 3. Delete invoices belonging to this client
+      await tx.invoice.deleteMany({
+        where: { clientId, userId: user.id },
+      });
+
+      // 4. Delete time logs belonging to this client
+      await tx.timeLog.deleteMany({
+        where: { clientId, userId: user.id },
+      });
+
+      // 5. Delete the client record
+      return await tx.client.delete({
+        where: {
+          id: clientId,
+          userId: user.id,
+        },
+      });
     });
 
-    await invalidateDashboardCache(user.id);
+    await invalidateClientCache(user.id);
     revalidatePath("/clients");
     revalidatePath("/clients/[id]");
+    revalidatePath("/dashboard");
+    return client;
   } catch (error) {
-    toast.error({
-      title: "Error",
-      description: (error as Error).message,
-    });
+    throw new Error((error as Error).message);
   }
 };
 export async function getClientOptions() {

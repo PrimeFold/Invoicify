@@ -80,7 +80,7 @@ export function InvoicesTable({ invoices }: { invoices: InvoiceTableRow[] }) {
   };
 
   return (
-    <Card className="overflow-hidden rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 text-left shadow-sm">
+    <Card className="overflow-hidden rounded-2xl border border-line/70 bg-surface py-0 text-left">
       {/* Invoice History Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line/60 bg-canvas/40 px-5 py-4">
         <div className="flex items-center gap-2.5">

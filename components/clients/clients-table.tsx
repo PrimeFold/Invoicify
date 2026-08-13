@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { deleteClient } from "@/app/actions/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { toast } from "@/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
@@ -50,15 +51,22 @@ export function ClientsTable({ clients }: ClientsTableProps) {
       try {
         // 2. Perform DB deletion in background
         await deleteClient(id);
+        toast.success({
+          title: "Client deleted",
+          description: "The client has been successfully removed.",
+        });
         router.refresh();
       } catch (error) {
-        console.error("Failed to delete client:", error);
+        toast.error({
+          title: "Failed to delete client",
+          description: (error as Error).message || "An unexpected error occurred.",
+        });
       }
     });
   }
 
   return (
-    <Card className="overflow-hidden rounded-2xl border-line/80 bg-surface/90 backdrop-blur-md py-0 shadow-sm text-left">
+    <Card className="overflow-hidden rounded-2xl border border-line/70 bg-surface py-0 text-left">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left font-sans text-xs">
           <thead>

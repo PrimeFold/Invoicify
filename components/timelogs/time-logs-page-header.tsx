@@ -105,7 +105,7 @@ export function TimeLogsPageHeader({
               Time Logs
             </h1>
 
-            <span className="rounded-full border border-line/80 bg-surface/80 px-2.5 py-0.5 font-mono text-xs font-medium text-txt-muted shadow-2xs">
+            <span className="rounded-full border border-line/80 bg-surface/80 px-2.5 py-0.5 font-mono text-xs font-medium text-txt-muted">
               {logCount ?? "—"}
             </span>
           </div>

@@ -103,14 +103,14 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
     !isSaving;
 
   return (
-    <div className="glass-panel overflow-hidden border-line/80 shadow-md">
+    <div className="rounded-2xl border border-line/70 bg-surface overflow-hidden text-left">
       {/* Top status bar */}
       <div className="flex items-center justify-between border-b border-line/60 bg-canvas/40 px-5 py-4">
         <div className="flex items-center gap-3.5">
           <div
             className={`grid size-9 place-items-center rounded-xl border transition-all ${
               isTracking
-                ? "border-status-pending-border bg-status-pending-bg text-status-pending shadow-[0_0_12px_var(--status-pending-border)]"
+                ? "border-status-pending-border bg-status-pending-bg text-status-pending"
                 : "border-line/60 bg-surface/80 text-primary"
             }`}
           >
@@ -181,10 +181,10 @@ export function TimeTracker({ clients }: TimeTrackerProps) {
             type="button"
             disabled={isSaving || (isTracking ? false : !canStart)}
             onClick={isTracking ? stopTimer : startTimer}
-            className={`h-10.5 shrink-0 cursor-pointer gap-2 rounded-xl px-5 font-sans text-xs font-semibold active-press transition-all shadow-xs ${
+            className={`h-10.5 shrink-0 cursor-pointer gap-2 rounded-xl px-5 font-sans text-xs font-bold active-press transition-all ${
               isTracking
                 ? "border border-status-overdue-border bg-status-overdue-bg text-status-overdue hover:bg-status-overdue-bg/80"
-                : "border border-status-paid-border bg-status-paid-bg text-status-paid hover:bg-status-paid-bg/80"
+                : "bg-violet-600 hover:bg-violet-500 text-white shadow-none"
             }`}
           >
             {isSaving ? (

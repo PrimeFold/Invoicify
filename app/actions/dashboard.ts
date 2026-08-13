@@ -16,7 +16,7 @@ async function loadDashboardData(userId: string) {
     }),
     prisma.timeLog.findMany({
       where: { userId },
-      include: { client: { select: { hourlyRate: true } } },
+      include: { client: { select: { name: true, hourlyRate: true } } },
     }),
     prisma.invoice.findMany({
       where: { userId },
