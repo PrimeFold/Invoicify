@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   title: "Invoicify | Time tracking and invoicing",
   description:
     "Track billable work and create polished invoices with Invoicify.",
+  icons: {
+    icon: "/invoicify-purple-logo-set/invoicify-favicon.svg",
+    shortcut: "/invoicify-purple-logo-set/invoicify-app-icon.svg",
+    apple: "/invoicify-purple-logo-set/invoicify-app-icon.svg",
+  },
 };
 
 const themeScript = `

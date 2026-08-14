@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+
+<defs>
+  <linearGradient id="violet" x1="40" y1="20" x2="220" y2="250" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#A855F7"/>
+    <stop offset="1" stop-color="#7C3AED"/>
+  </linearGradient>
+  <linearGradient id="soft" x1="100" y1="60" x2="360" y2="390" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFFFFF"/>
+    <stop offset="1" stop-color="#F5F3FF"/>
+  </linearGradient>
+</defs>
+
+<rect width="128" height="128" rx="30" fill="#4C1D95"/>
+<!-- simplified ribbon/document mark -->
+<path d="M28 24h42l20 20v52H28c-7 0-12-5-12-12V36c0-7 5-12 12-12Z" fill="#F8F7FF"/>
+<path d="M70 24v18c0 4 3 7 7 7h13" fill="none" stroke="#7C3AED" stroke-width="4"/>
+<path d="M20 63h30" stroke="#A855F7" stroke-width="5" stroke-linecap="round" opacity=".4"/>
+<path d="M16 76h32" stroke="#7C3AED" stroke-width="4" stroke-linecap="round" opacity=".25"/>
+<path d="M31 99L63 45c4-7 10-11 17-14l7-3c7-3 12 5 9 11l-5 9c-2 5-6 8-11 11L47 105c-6 4-14 2-17-4-2-3-2-7 1-12Z" fill="url(#violet)"/>
+<path d="M69 66h20" stroke="#7C3AED" stroke-width="4" stroke-linecap="round"/>
+<path d="M69 77h12" stroke="#7C3AED" stroke-width="4" stroke-linecap="round"/>
+</svg>
