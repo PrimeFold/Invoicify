@@ -8,7 +8,6 @@ import {
   ShieldAlert,
   Clock,
   Sparkles,
-  Camera,
   Trash2,
   AlertTriangle,
   CheckCircle2,
@@ -19,11 +18,11 @@ import {
   getUserProfile,
   updateProfileName,
   updateProfileEmail,
-  updateProfileAvatar,
   deleteAccount,
   type UserProfileData,
 } from "@/app/actions/user";
 import { authClient } from "@/lib/auth";
+import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
@@ -38,46 +37,50 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { getCachedData, setCachedData, invalidateClientCache } from "@/lib/client-cache";
+
+const SETTINGS_CACHE_KEY = "user:profile";
 const settle = { type: "spring", bounce: 0, duration: 0.5 } as const;
 
 export default function SettingsPage() {
   const reduced = useReducedMotion();
   const router = useRouter();
 
-  const [profile, setProfile] = useState<UserProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const cachedProfile = getCachedData<UserProfileData>(SETTINGS_CACHE_KEY);
+  const [profile, setProfile] = useState<UserProfileData | null>(cachedProfile);
+  const [isLoading, setIsLoading] = useState(!cachedProfile);
   const [isPending, startTransition] = useTransition();
 
   // Form states
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [name, setName] = useState(cachedProfile?.name || "");
+  const [email, setEmail] = useState(cachedProfile?.email || "");
 
   // Saving states
   const [savingName, setSavingName] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
-  const [savingAvatar, setSavingAvatar] = useState(false);
 
   // Danger zone confirmation state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
 
-  const fetchProfile = () => {
-    setIsLoading(true);
+  const fetchProfile = (silent = false) => {
+    if (!silent && !cachedProfile) setIsLoading(true);
     getUserProfile()
       .then((data) => {
         setProfile(data);
         setName(data.name);
         setEmail(data.email);
-        setAvatarUrl(data.image || "");
+        setCachedData(SETTINGS_CACHE_KEY, data);
       })
       .catch((error) => {
         console.error("Failed to load profile:", error);
-        toast.error({
-          title: "Error loading profile",
-          description: (error as Error).message || "Could not fetch user details.",
-        });
+        if (!cachedProfile) {
+          toast.error({
+            title: "Error loading profile",
+            description: (error as Error).message || "Could not fetch user details.",
+          });
+        }
       })
       .finally(() => {
         setIsLoading(false);
@@ -85,7 +88,7 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    fetchProfile();
+    fetchProfile(!!cachedProfile);
   }, []);
 
   const handleSaveName = (e: React.FormEvent) => {
@@ -95,11 +98,12 @@ export default function SettingsPage() {
     setSavingName(true);
     updateProfileName(name)
       .then((res) => {
+        invalidateClientCache();
         toast.success({
           title: "Username updated",
           description: "Your display name has been updated successfully.",
         });
-        fetchProfile();
+        fetchProfile(true);
       })
       .catch((err) => {
         toast.error({
@@ -119,11 +123,12 @@ export default function SettingsPage() {
     setSavingEmail(true);
     updateProfileEmail(email)
       .then((res) => {
+        invalidateClientCache();
         toast.success({
           title: "Email updated",
           description: "Your account email has been updated successfully.",
         });
-        fetchProfile();
+        fetchProfile(true);
       })
       .catch((err) => {
         toast.error({
@@ -133,29 +138,6 @@ export default function SettingsPage() {
       })
       .finally(() => {
         setSavingEmail(false);
-      });
-  };
-
-  const handleSaveAvatar = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    setSavingAvatar(true);
-    updateProfileAvatar(avatarUrl.trim() || null)
-      .then((res) => {
-        toast.success({
-          title: "Avatar updated",
-          description: "Your profile picture has been updated.",
-        });
-        fetchProfile();
-      })
-      .catch((err) => {
-        toast.error({
-          title: "Avatar update failed",
-          description: (err as Error).message || "Could not update profile picture.",
-        });
-      })
-      .finally(() => {
-        setSavingAvatar(false);
       });
   };
 
@@ -189,6 +171,14 @@ export default function SettingsPage() {
       });
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <LoadingIndicator size="md" label="Loading account preferences..." />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-4xl space-y-8 text-left font-sans selection:bg-primary/20 pb-12">
       {/* 1. Header */}
@@ -206,16 +196,8 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {isLoading ? (
-        <Card className="rounded-2xl border border-line/70 bg-surface p-12 text-center shadow-2xs">
-          <div className="flex flex-col items-center justify-center gap-3">
-            <Loader2 className="size-6 animate-spin text-primary" />
-            <p className="text-xs font-medium text-txt-muted">Loading account preferences…</p>
-          </div>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* 2. Avatar Card */}
+      <div className="space-y-6">
+        {/* 2. Avatar Card */}
           <motion.div
             initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -224,45 +206,30 @@ export default function SettingsPage() {
             <Card className="rounded-2xl border border-line/70 bg-surface p-6 shadow-2xs text-left">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                 <div className="flex items-center gap-4">
-                  <div className="relative grid size-16 shrink-0 place-items-center rounded-2xl border border-line/80 bg-primary/10 text-primary font-bold text-xl uppercase font-sans overflow-hidden">
-                    {avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={avatarUrl}
-                        alt={profile?.name || "Avatar"}
-                        className="size-full object-cover"
-                        onError={() => setAvatarUrl("")}
-                      />
-                    ) : (
-                      (profile?.name || "A").substring(0, 2)
-                    )}
+                  <div className="relative grid size-14 shrink-0 place-items-center rounded-2xl border border-line/80 bg-primary/10 text-primary font-bold text-lg uppercase font-sans overflow-hidden">
+                    {(profile?.name || "A").substring(0, 2)}
                   </div>
                   <div>
-                    <h2 className="text-sm sm:text-base font-bold text-txt-primary font-sans">
-                      Profile Picture
-                    </h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm sm:text-base font-bold text-txt-primary font-sans">
+                        Profile Picture
+                      </h2>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold text-primary shadow-2xs font-sans">
+                        <Sparkles className="size-3" />
+                        Coming Soon
+                      </span>
+                    </div>
                     <p className="mt-0.5 text-xs text-txt-muted">
-                      Enter an image URL for your profile avatar.
+                      Custom avatar uploads and Gravatar support will be enabled in an upcoming release.
                     </p>
                   </div>
                 </div>
 
-                <form onSubmit={handleSaveAvatar} className="flex items-center gap-2.5 w-full sm:w-auto">
-                  <input
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://example.com/avatar.png"
-                    className="h-9 w-full sm:w-64 rounded-xl border border-line/70 bg-canvas/60 px-3 text-xs text-txt-primary outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-txt-muted font-sans"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={savingAvatar}
-                    className="h-9 shrink-0 rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground hover:opacity-90 active-press cursor-pointer"
-                  >
-                    {savingAvatar ? <Loader2 className="size-3.5 animate-spin" /> : "Save Avatar"}
-                  </Button>
-                </form>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-xl border border-line/80 bg-canvas/60 px-3.5 py-2 font-sans text-xs font-medium text-txt-muted cursor-not-allowed">
+                    Avatar upload locked
+                  </span>
+                </div>
               </div>
             </Card>
           </motion.div>
@@ -414,7 +381,6 @@ export default function SettingsPage() {
             </Card>
           </motion.div>
         </div>
-      )}
 
       {/* Delete Account Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

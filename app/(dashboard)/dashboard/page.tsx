@@ -6,9 +6,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDashboardData } from "@/app/actions/dashboard";
 import { authClient } from "@/lib/auth";
+import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
+import { getCachedData, setCachedData } from "@/lib/client-cache";
 
 type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 
+const DASHBOARD_CACHE_KEY = "dashboard:data";
 const settle = { type: "spring", bounce: 0, duration: 0.5 } as const;
 
 function formatCurrency(value: number) {
@@ -53,10 +56,11 @@ export default function DashboardPage() {
   const reduced = useReducedMotion();
   const { data: session } = authClient.useSession();
   const user = session?.user;
-  const userName = user?.name
+  const userName = user?.name;
 
+  const cached = getCachedData<DashboardData>(DASHBOARD_CACHE_KEY);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
+    cached
   );
   const [hasLoadError, setHasLoadError] = useState(false);
 
@@ -66,12 +70,13 @@ export default function DashboardPage() {
       .then((data) => {
         if (isCurrent) {
           setDashboardData(data);
+          setCachedData(DASHBOARD_CACHE_KEY, data);
           setHasLoadError(false);
         }
       })
       .catch((error) => {
         console.error("Failed to load dashboard data:", error);
-        if (isCurrent) setHasLoadError(true);
+        if (isCurrent && !cached) setHasLoadError(true);
       });
 
     return () => {
@@ -83,6 +88,14 @@ export default function DashboardPage() {
   const timeLogs = dashboardData?.timeLogs ?? [];
   const invoices = dashboardData?.invoices ?? [];
   const isLoading = dashboardData === null && !hasLoadError;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <LoadingIndicator size="md" label="Loading workspace dashboard..." />
+      </div>
+    );
+  }
 
   // Unbilled work calculations per client
   const unbilledMinutesByClient = new Map<string, number>();
@@ -326,11 +339,7 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          {isLoading ? (
-            <p className="mt-4 py-6 text-center text-xs text-txt-muted">
-              Loading clients…
-            </p>
-          ) : clientsWithUnbilledList.length === 0 ? (
+          {clientsWithUnbilledList.length === 0 ? (
             <p className="mt-4 py-8 text-center text-xs text-txt-muted">
               No unbilled work logged yet
             </p>
@@ -366,11 +375,7 @@ export default function DashboardPage() {
           <h2 className="text-sm sm:text-base font-bold tracking-tight text-txt-primary font-sans">
             Recent time logs
           </h2>
-          {isLoading ? (
-            <p className="mt-4 py-6 text-center text-xs text-txt-muted">
-              Loading logs…
-            </p>
-          ) : formattedLogs.length === 0 ? (
+          {formattedLogs.length === 0 ? (
             <p className="mt-4 py-8 text-center text-xs text-txt-muted">
               No time logs recorded yet
             </p>
@@ -403,11 +408,7 @@ export default function DashboardPage() {
           <h2 className="text-sm sm:text-base font-bold tracking-tight text-txt-primary font-sans">
             Invoices
           </h2>
-          {isLoading ? (
-            <p className="mt-4 py-6 text-center text-xs text-txt-muted">
-              Loading invoices…
-            </p>
-          ) : formattedInvoices.length === 0 ? (
+          {formattedInvoices.length === 0 ? (
             <p className="mt-4 py-8 text-center text-xs text-txt-muted">
               No invoices created yet
             </p>
