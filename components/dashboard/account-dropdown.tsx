@@ -72,11 +72,17 @@ const AccountDropDown = ({
         </div>
 
         <DropdownMenuGroup className="space-y-0.5">
-          <DropdownMenuItem className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-txt-primary focus:bg-surface-hover active-press transition-colors">
+          <DropdownMenuItem
+            onClick={() => router.push("/settings")}
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-txt-primary focus:bg-surface-hover active-press transition-colors"
+          >
             <UserRound size={15} className="text-txt-muted" />
             <span>Profile Settings</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-txt-primary focus:bg-surface-hover active-press transition-colors">
+          <DropdownMenuItem
+            onClick={() => router.push("/settings")}
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-txt-primary focus:bg-surface-hover active-press transition-colors"
+          >
             <Settings2 size={15} className="text-txt-muted" />
             <span>Preferences</span>
           </DropdownMenuItem>

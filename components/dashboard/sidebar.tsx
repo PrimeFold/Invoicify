@@ -54,6 +54,17 @@ const sections = [
       },
     ],
   },
+  {
+    title: "Account",
+    items: [
+      {
+        href: "/settings",
+        label: "Settings",
+        icon: Settings,
+        badge: undefined,
+      },
+    ],
+  },
 ];
 
 export default function Sidebar({ user }: { user?: UserDetails }) {
