@@ -5,6 +5,7 @@ import { UserDetails } from "@/types/user";
 import {
   Clock3,
   HelpCircle,
+  Menu,
   LayoutDashboard,
   LogOut,
   type LucideIcon,
@@ -58,7 +59,7 @@ const sections = [
 export default function Sidebar({ user }: { user?: UserDetails }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [showPromo, setShowPromo] = useState(true);
+  const [showPromo, setShowPromo] = useState(false);
   const userName = user?.name || "Aditya Raj";
   const userEmail = user?.email || "aditya@invoicify.dev";
 
@@ -74,8 +75,15 @@ export default function Sidebar({ user }: { user?: UserDetails }) {
   };
 
   return (
-    <aside className="w-64 shrink-0 border-r border-line/70 bg-canvas/40 backdrop-blur-md">
-      <div className="sticky top-0 flex h-screen flex-col justify-between p-4">
+    <>
+      <div className="flex items-center justify-between border-b border-line/60 px-4 py-3 md:hidden">
+        <span className="text-xs font-semibold text-txt-secondary">Workspace</span>
+        <button type="button" aria-expanded={showPromo} aria-label="Open workspace navigation" onClick={() => setShowPromo((value) => !value)} className="active-press grid size-9 place-items-center rounded-xl border border-line bg-surface text-txt-primary">
+          <Menu className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+      <aside className={`${showPromo ? "block" : "hidden"} w-full shrink-0 border-b border-line/70 bg-canvas/95 backdrop-blur-md md:block md:w-64 md:border-b-0 md:border-r`}>
+      <div className="sticky top-0 flex min-h-0 flex-col justify-between p-4 md:h-[calc(100dvh-4rem)]">
         {/* Navigation Links */}
         <div className="space-y-5 pt-1">
           <nav className="space-y-5">
@@ -132,7 +140,8 @@ export default function Sidebar({ user }: { user?: UserDetails }) {
           </div>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 

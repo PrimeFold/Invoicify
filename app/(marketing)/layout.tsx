@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { SiGithub, SiInstagram, SiX } from "react-icons/si";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { requireUser } from "@/lib/auth/session";
-import { Brand } from "./landing/landing-page";
+import { Brand, MobileMenu } from "./landing/landing-page";
 
 export default async function MarketLayout({
   children,
@@ -36,11 +36,14 @@ export default async function MarketLayout({
         <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-line/70 bg-glass-surface px-4 py-2.5 shadow-[0_12px_32px_-24px_oklch(0_0_0_/_0.7)] backdrop-blur-xl sm:px-5">
           <Brand />
           <nav aria-label="Primary navigation" className="flex items-center gap-1.5">
-            <Link href="/#why" className="hidden rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary lg:inline-flex">Why I built it</Link>
-            <Link href="/#features" className="hidden rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary lg:inline-flex">Features</Link>
-            <ThemeToggle />
-            <Link href="/login" className="active-press rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors hover:text-txt-primary">Sign in</Link>
-            <Link href="/register" className="active-press rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Start tracking</Link>
+            <div className="hidden items-center gap-1.5 lg:flex">
+              <Link href="/#why" className="rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary">Why I built it</Link>
+              <ThemeToggle />
+              <Link href="/#features" className="rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary">Features</Link>
+              <Link href="/login" className="active-press rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors hover:text-txt-primary">Sign in</Link>
+              <Link href="/register" className="active-press rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Start tracking</Link>
+            </div>
+            <MobileMenu />
           </nav>
         </div>
       </header>
