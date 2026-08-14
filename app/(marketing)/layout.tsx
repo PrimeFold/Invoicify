@@ -37,8 +37,8 @@ export default async function MarketLayout({
           <Brand />
           <nav aria-label="Primary navigation" className="flex items-center gap-1.5">
             <div className="hidden items-center gap-1.5 lg:flex">
-              <Link href="/#why" className="rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary">Why I built it</Link>
               <ThemeToggle />
+              <Link href="/#why" className="rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary">Why I built it</Link>
               <Link href="/#features" className="rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary">Features</Link>
               <Link href="/login" className="active-press rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors hover:text-txt-primary">Sign in</Link>
               <Link href="/register" className="active-press rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Start tracking</Link>
