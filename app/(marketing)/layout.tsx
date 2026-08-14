@@ -32,34 +32,23 @@ export default async function MarketLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-txt-primary transition-colors duration-200">
-      {/* Shared Header */}
-      <header className="sticky top-0 z-40 glass-header py-3.5 px-6">
-        <div className="max-w-6xl w-full mx-auto flex flex-col sm:flex-row items-center sm:justify-between gap-4">
+      <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-line/70 bg-glass-surface px-4 py-2.5 shadow-[0_12px_32px_-24px_oklch(0_0_0_/_0.7)] backdrop-blur-xl sm:px-5">
           <Brand />
-          <div className="flex items-center gap-4">
+          <nav aria-label="Primary navigation" className="flex items-center gap-1.5">
             <ThemeToggle />
-            <Link
-              href="/login"
-              className="font-sans text-xs font-medium text-txt-secondary hover:text-txt-primary px-3 py-1.5 transition-colors active-press"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="bg-primary text-primary-foreground font-sans font-medium text-xs px-4 py-2 rounded-xl hover:opacity-90 active-press transition-all shadow-xs"
-            >
-              Get Started
-            </Link>
-          </div>
+            <Link href="/login" className="active-press rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors hover:text-txt-primary">Sign in</Link>
+            <Link href="/register" className="active-press rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Start tracking</Link>
+          </nav>
         </div>
       </header>
       <div className="flex-1">{children}</div>
-      <footer className="border-t border-line/60 py-8 px-6">
-        <div className="max-w-6xl w-full mx-auto text-xs font-sans text-txt-muted flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p>Invoicify — Time tracking and invoicing for freelancers</p>
-          <p className="inline-flex items-center gap-2">
-            Open Source <SiGithub className="size-3.5" />
-          </p>
+      <footer className="border-t border-line/60 px-6 py-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 text-xs text-txt-muted sm:flex-row sm:items-center sm:justify-between">
+          <p>Invoicify. Time tracking and invoicing for freelancers.</p>
+          <a href="https://github.com" className="inline-flex items-center gap-2 transition-colors hover:text-txt-primary" rel="noreferrer">
+            Open source <SiGithub className="size-3.5" aria-hidden="true" />
+          </a>
         </div>
       </footer>
     </div>

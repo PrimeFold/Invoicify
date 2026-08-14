@@ -1,29 +1,21 @@
 "use client";
-import type { LucideIcon } from "lucide-react";
+
 import {
   ArrowRight,
-  Check,
-  ChevronRight,
   Clock3,
-  DollarSign,
   FileText,
+  Plus,
   ReceiptText,
+  TimerReset,
+  WalletCards,
 } from "lucide-react";
 import Link from "next/link";
-import { SiGithub } from "react-icons/si";
-import BlurText from "@/components/BlurText";
-import GradientWaves from "@/components/GradientWaves";
-import SplitText from "@/components/SplitText";
-import { benefits } from "./benefits";
-import { featureCards } from "./feature-cards";
+import { motion, useReducedMotion } from "motion/react";
 
 export function Brand() {
   return (
-    <Link
-      href="/"
-      className="flex items-center gap-2.5 font-sans text-sm font-semibold tracking-tight text-txt-primary active-press"
-    >
-      <span className="grid size-8 place-items-center rounded-lg bg-primary/10 border border-primary/20 text-primary shadow-xs">
+    <Link href="/" className="group flex items-center gap-2.5 text-sm font-semibold tracking-tight text-txt-primary">
+      <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_8px_24px_-12px_var(--primary)] transition-transform duration-200 [transition-timing-function:var(--ease-apple-snappy)] group-hover:scale-105">
         <ReceiptText className="size-4" aria-hidden="true" />
       </span>
       <span>Invoicify</span>
@@ -31,493 +23,141 @@ export function Brand() {
   );
 }
 
+const reveal = {
+  hidden: { opacity: 0, transform: "translateY(24px)" },
+  show: { opacity: 1, transform: "translateY(0)" },
+};
+
+function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduced ? false : "hidden"}
+      whileInView="show"
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.65, delay, ease: [0.23, 1, 0.32, 1] }}
+      variants={reveal}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function IslandButton({ href, children, secondary = false }: { href: string; children: React.ReactNode; secondary?: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={`group inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-5 text-sm font-semibold transition-transform duration-200 [transition-timing-function:var(--ease-apple-snappy)] active:scale-[0.98] ${secondary ? "border border-line bg-surface/70 text-txt-primary hover:bg-surface-hover" : "bg-primary text-primary-foreground shadow-[0_14px_30px_-16px_var(--primary)] hover:-translate-y-0.5"}`}
+    >
+      {children}
+      <span className={`grid size-7 place-items-center rounded-full transition-transform duration-200 [transition-timing-function:var(--ease-apple-snappy)] group-hover:translate-x-0.5 ${secondary ? "bg-canvas text-txt-secondary" : "bg-primary-foreground/15 text-primary-foreground"}`}>
+        <ArrowRight className="size-3.5" aria-hidden="true" />
+      </span>
+    </Link>
+  );
+}
+
 function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center text-center overflow-hidden">
-      {/* WebGL Wave Background */}
-      <div className="absolute inset-0 z-0">
-        <GradientWaves
-          horizonColor="#491cff"
-          waveColor="#FF9FFC"
-          crestColor="#FFFFFF"
-          speed={0.8}
-          amplitude={2.5}
-          waveScale={0.6}
-          waveRatio={0.9}
-          swell={35}
-          turbulence={20}
-          tilt={1.11}
-          zoom={1}
-          height={5.5}
-          fogDepth={15}
-          detail="medium"
-          brightness={1}
-          opacity={1}
-          mouseInteraction
-          parallaxStrength={0.5}
-          grain
-          grainIntensity={0.05}
-        />
-      </div>
-
-      {/* Content Layer */}
-      <div className="relative z-10 mx-auto max-w-4xl px-6 flex flex-col items-center justify-center">
-        {/* Badge Container */}
-        <div className="flex items-center justify-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-line/80 bg-surface/70 text-xs font-medium text-txt-secondary backdrop-blur-md shadow-2xs">
-            <span className="size-1.5 rounded-full bg-status-paid animate-pulse" />
-            Open source — free forever
-          </div>
-        </div>
-
-        {/* Headline Container */}
-        <div className="flex flex-col items-center justify-center mt-8">
-          <SplitText
-            text="Stop losing money"
-            tag="h1"
-            className="apple-display text-txt-primary text-center"
-            delay={40}
-            duration={0.8}
-            ease="power3.out"
-            splitType="chars"
-            from={{ opacity: 0, y: 30 }}
-            to={{ opacity: 1, y: 0 }}
-            threshold={0.1}
-            rootMargin="0px"
-            textAlign="center"
-          />
-          <SplitText
-            text="on unbilled hours."
-            tag="span"
-            className="apple-display text-txt-muted font-normal text-center mt-1"
-            delay={40}
-            duration={0.8}
-            ease="power3.out"
-            splitType="chars"
-            from={{ opacity: 0, y: 30 }}
-            to={{ opacity: 1, y: 0 }}
-            threshold={0.1}
-            rootMargin="0px"
-            textAlign="center"
-          />
-        </div>
-
-        {/* Subheadline Container */}
-        <div className="flex items-center justify-center mt-8">
-          <BlurText
-            text="Track time. Generate invoices. Get paid. Built for freelancers who value clarity over complexity."
-            className="max-w-xl text-base sm:text-lg leading-relaxed text-txt-secondary tracking-tight text-center justify-center"
-            delay={80}
-            animateBy="words"
-            direction="bottom"
-            stepDuration={0.4}
-          />
-        </div>
-
-        {/* CTA Container */}
-        <div className="flex items-center justify-center mt-10">
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center h-11 rounded-xl px-6 text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 active-press transition-all shadow-md shadow-primary/20"
-            >
-              Start tracking
-              <ArrowRight className="ml-2 size-4" aria-hidden="true" />
-            </Link>
-            <Link
-              href="https://github.com"
-              className="inline-flex items-center justify-center h-11 rounded-xl px-6 text-sm font-medium bg-surface/80 text-txt-primary border border-line/80 hover:bg-surface-hover active-press transition-all backdrop-blur-sm shadow-sm"
-            >
-              <SiGithub className="mr-2 size-4" aria-hidden="true" />
-              Source code
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Product Preview — Interactive Dashboard Mock
-   ───────────────────────────────────────────── */
-
-function ProductPreview() {
-  return (
-    <section className="relative mx-auto max-w-5xl px-6 pb-24">
-      <div className="glass-panel overflow-hidden shadow-2xl">
-        {/* Window Chrome */}
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-line/60 bg-canvas/30">
-          <div className="flex items-center gap-1.5">
-            <span className="size-3 rounded-full bg-[oklch(0.65_0.20_25)]" />
-            <span className="size-3 rounded-full bg-[oklch(0.80_0.16_85)]" />
-            <span className="size-3 rounded-full bg-[oklch(0.70_0.18_148)]" />
-          </div>
-          <div className="flex-1 text-center">
-            <span className="inline-flex items-center gap-1.5 px-4 py-1 rounded-lg bg-canvas/60 border border-line/40 text-[11px] text-txt-muted font-mono">
-              invoicify.app/dashboard
-            </span>
-          </div>
-        </div>
-
-        {/* Dashboard Content */}
-        <div className="p-6 sm:p-8 space-y-6">
-          {/* Metric Cards Row */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard
-              icon={DollarSign}
-              label="Collected"
-              value="$12,480"
-              change="+18%"
-              changeType="positive"
-            />
-            <MetricCard
-              icon={Clock3}
-              label="Hours Logged"
-              value="186.5"
-              change="This month"
-              changeType="neutral"
-            />
-            <MetricCard
-              icon={FileText}
-              label="Unbilled"
-              value="$2,840"
-              change="24.5 hrs"
-              changeType="warning"
-            />
-          </div>
-
-          {/* Mini Table */}
-          <div className="rounded-xl border border-line/60 bg-canvas/40 overflow-hidden">
-            <div className="px-4 py-3 border-b border-line/40 flex items-center justify-between">
-              <span className="apple-label-caps text-[9px]">
-                Recent Invoices
-              </span>
-              <span className="text-[10px] text-txt-muted font-sans">
-                3 of 12
-              </span>
-            </div>
-            <div className="divide-y divide-line/30">
-              <InvoiceRow
-                client="Acme Corp"
-                number="INV-2026-012"
-                amount="$3,200.00"
-                status="paid"
-              />
-              <InvoiceRow
-                client="Nebula Labs"
-                number="INV-2026-011"
-                amount="$1,840.00"
-                status="paid"
-              />
-              <InvoiceRow
-                client="Vertex AI"
-                number="INV-2026-010"
-                amount="$2,400.00"
-                status="pending"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  change,
-  changeType,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  change: string;
-  changeType: "positive" | "warning" | "neutral";
-}) {
-  const changeStyles = {
-    positive: "text-status-paid bg-status-paid-bg border-status-paid-border",
-    warning:
-      "text-status-pending bg-status-pending-bg border-status-pending-border",
-    neutral: "text-txt-muted bg-canvas/60 border-line/60",
-  };
-
-  return (
-    <div className="glass-card p-4 text-left">
-      <div className="flex items-center justify-between mb-3">
-        <span className="grid size-8 place-items-center rounded-lg border border-line/60 bg-canvas/60 text-primary">
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${changeStyles[changeType]}`}
-        >
-          {change}
-        </span>
-      </div>
-      <p className="text-2xl font-bold font-sans tracking-tight text-txt-primary">
-        {value}
-      </p>
-      <p className="mt-0.5 text-xs text-txt-muted font-sans">{label}</p>
-    </div>
-  );
-}
-
-function InvoiceRow({
-  client,
-  number,
-  amount,
-  status,
-}: {
-  client: string;
-  number: string;
-  amount: string;
-  status: "paid" | "pending";
-}) {
-  const isPaid = status === "paid";
-
-  return (
-    <div className="flex items-center justify-between px-4 py-3 text-xs font-sans">
-      <div className="flex items-center gap-3 min-w-0">
-        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/8 border border-primary/15 text-primary text-[10px] font-bold">
-          {client.substring(0, 2).toUpperCase()}
-        </span>
-        <div className="min-w-0">
-          <p className="font-medium text-txt-primary truncate">{client}</p>
-          <p className="text-[10px] text-txt-muted font-mono">{number}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <span className="font-mono font-semibold text-txt-primary text-[11px]">
-          {amount}
-        </span>
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium border ${
-            isPaid
-              ? "text-status-paid bg-status-paid-bg border-status-paid-border"
-              : "text-status-pending bg-status-pending-bg border-status-pending-border"
-          }`}
-        >
-          <span
-            className={`size-1 rounded-full ${
-              isPaid ? "bg-status-paid" : "bg-status-pending"
-            }`}
-          />
-          {isPaid ? "PAID" : "PENDING"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function HowItWorks() {
-  const steps = [
-    {
-      step: "01",
-      title: "Log your time",
-      description:
-        "Pick a client, describe the task, start the timer. Or enter hours manually. Your call.",
-    },
-    {
-      step: "02",
-      title: "Generate an invoice",
-      description:
-        "Select unbilled time entries, click generate. A formatted PDF is compiled server-side in milliseconds.",
-    },
-    {
-      step: "03",
-      title: "Share and get paid",
-      description:
-        "Copy a signed link, send it to your client. They view the invoice and download the PDF. No sign-up required.",
-    },
-  ];
-
-  return (
-    <section className="mx-auto max-w-5xl px-6 py-24 border-t border-line/60">
-      <div className="text-center mb-16">
-        <p className="apple-label-caps text-[10px]">How it works</p>
-        <h2 className="mt-3 apple-heading text-txt-primary">
-          Three steps. That's it.
-        </h2>
-      </div>
-
-      <div className="grid gap-8 sm:grid-cols-3">
-        {steps.map((item) => (
-          <div key={item.step} className="text-left">
-            <span className="inline-flex items-center justify-center size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-sm font-bold mb-4">
-              {item.step}
-            </span>
-            <h3 className="text-base font-semibold text-txt-primary tracking-tight mb-2">
-              {item.title}
-            </h3>
-            <p className="text-sm text-txt-secondary leading-relaxed">
-              {item.description}
+    <section className="relative overflow-hidden px-6 pb-20 pt-16 sm:pb-28 sm:pt-20 lg:pb-32 lg:pt-24">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,oklch(0.65_0.22_285_/_0.16),transparent_32%),radial-gradient(circle_at_15%_75%,oklch(0.35_0.12_285_/_0.1),transparent_28%)]" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+        <div className="max-w-xl">
+          <Reveal>
+            <p className="mb-6 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Time in. Money out.</p>
+            <h1 className="max-w-[10ch] text-balance text-5xl font-semibold leading-[0.98] tracking-[-0.06em] text-txt-primary sm:text-6xl lg:text-7xl">
+              Know what your work is worth.
+            </h1>
+            <p className="mt-7 max-w-[42ch] text-pretty text-base leading-7 text-txt-secondary sm:text-lg">
+              Invoicify keeps your hours, clients, and invoices in one clear place.
             </p>
-          </div>
-        ))}
+            <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row">
+              <IslandButton href="/register">Start tracking</IslandButton>
+              <IslandButton href="/login" secondary>Sign in</IslandButton>
+            </div>
+          </Reveal>
+        </div>
+        <Reveal delay={0.1} className="relative lg:pl-6">
+          <div className="absolute -inset-6 rounded-[2.5rem] bg-primary/10 blur-3xl" aria-hidden="true" />
+          <DashboardPreview />
+        </Reveal>
       </div>
     </section>
   );
 }
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  tag,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  tag: string;
-}) {
+
+const previewStats = [
+  ["Tracked this week", "27.4 hrs", "Goal 32 hrs"],
+  ["Unbilled work", "$2,184", "18.2 hrs · 3 clients"],
+  ["Awaiting payment", "$4,760", "3 invoices open"],
+  ["Paid this month", "$8,940", "7 paid invoices"],
+];
+
+const previewClients = [
+  ["Northline Studio", "7.5 hrs · $120/hr", "$900"],
+  ["Morrow & Finch", "5.2 hrs · $145/hr", "$754"],
+  ["Cedar House", "3.8 hrs · $140/hr", "$532"],
+];
+
+const previewLogs = [
+  ["Product strategy workshop", "Northline Studio · 2 hrs ago", "2h 15m"],
+  ["Homepage implementation", "Morrow & Finch · 5 hrs ago", "3h 40m"],
+  ["Analytics review", "Cedar House · yesterday", "1h 20m"],
+];
+
+const previewInvoices = [
+  ["INV-2026-018 · Northline Studio", "Due in 3 days", "$2,340", "Sent"],
+  ["INV-2026-017 · Morrow & Finch", "Paid 2 days ago", "$1,880", "Paid"],
+  ["INV-2026-016 · Cedar House", "Paid 5 days ago", "$1,420", "Paid"],
+];
+
+function DashboardPreview() {
   return (
-    <div className="glass-card p-5 text-left active-press">
-      <div className="flex items-center justify-between mb-4">
-        <span className="grid size-9 place-items-center rounded-xl border border-line/60 bg-canvas/60 text-primary shadow-2xs">
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
-        <span className="apple-label-caps text-[9px] border border-line/60 px-2.5 py-0.5 rounded-full bg-canvas/60 font-sans">
-          {tag}
-        </span>
+    <div className="relative rounded-[2rem] bg-surface/60 p-1.5 shadow-[0_28px_80px_-36px_oklch(0_0_0_/_0.7)] ring-1 ring-white/10">
+      <div className="overflow-hidden rounded-[1.65rem] border border-line/70 bg-canvas shadow-[inset_0_1px_0_oklch(1_0_0_/_0.06)]">
+        <div className="flex items-center justify-between border-b border-line/60 px-4 py-3 sm:px-5">
+          <div className="flex items-center gap-2"><span className="size-2 rounded-full bg-primary" /><span className="text-[11px] font-semibold text-txt-primary">Dashboard</span></div>
+          <span className="rounded-lg border border-line/70 bg-surface px-2 py-1 text-[9px] text-txt-muted">invoicify.app/dashboard</span>
+          <span className="grid size-6 place-items-center rounded-lg border border-line/70 bg-surface text-txt-secondary"><Plus className="size-3" aria-hidden="true" /></span>
+        </div>
+        <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
+          <div className="flex items-end justify-between gap-4"><div><p className="text-base font-semibold tracking-tight text-txt-primary sm:text-lg">Good afternoon, Maya</p><p className="mt-1 text-[10px] text-txt-muted sm:text-xs">3 active clients · 3 invoices need sending</p></div><button className="hidden rounded-xl border border-line bg-surface px-3 py-2 text-[10px] font-semibold text-txt-primary sm:inline-flex">New invoice</button></div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            {previewStats.map(([label, value, note]) => <div key={label} className="rounded-xl border border-line/70 bg-surface p-3"><p className="text-[9px] text-txt-secondary">{label}</p><p className="mt-1 text-sm font-semibold tracking-tight text-txt-primary sm:text-base">{value}</p><p className="mt-1 truncate text-[8px] text-txt-muted">{note}</p></div>)}
+          </div>
+          <div className="grid gap-3 lg:grid-cols-[1.45fr_1fr]">
+            <section className="rounded-xl border border-line/70 bg-surface p-4"><div className="flex items-center justify-between"><h3 className="text-xs font-semibold text-txt-primary">Hours this week</h3><span className="text-[9px] text-txt-muted">27.4 hrs</span></div><div className="mt-5 flex h-28 items-end gap-2">{[46, 70, 56, 82, 64, 18, 10].map((height, index) => <div key={index} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5"><div className={`w-full rounded-t-md ${index === 3 ? "bg-primary" : "bg-primary/25"}`} style={{ height: `${height}%` }} /><span className="text-[8px] text-txt-muted">{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index]}</span></div>)}</div></section>
+            <section className="rounded-xl border border-line/70 bg-surface p-4"><div className="flex items-center justify-between"><h3 className="text-xs font-semibold text-txt-primary">Unbilled by client</h3><span className="text-[9px] text-txt-muted">18.2 hrs</span></div><div className="mt-2">{previewClients.map(([name, meta, amount]) => <div key={name} className="flex items-center justify-between gap-2 border-b border-line/40 py-2.5 last:border-0"><div className="min-w-0"><p className="truncate text-[10px] font-semibold text-txt-primary">{name}</p><p className="truncate text-[8px] text-txt-muted">{meta}</p></div><span className="text-[10px] font-semibold text-txt-primary">{amount}</span></div>)}</div></section>
+          </div>
+          <div className="grid gap-3 lg:grid-cols-2"><PreviewList title="Recent time logs" rows={previewLogs} /><PreviewInvoices /></div>
+        </div>
       </div>
-      <h3 className="font-semibold text-txt-primary text-sm tracking-tight">
-        {title}
-      </h3>
-      <p className="mt-1.5 text-xs text-txt-secondary leading-relaxed font-sans">
-        {description}
-      </p>
     </div>
   );
 }
 
-function Features() {
-  return (
-    <section className="mx-auto max-w-5xl px-6 py-24 border-t border-line/60">
-      <div className="text-center mb-14">
-        <p className="apple-label-caps text-[10px]">Features</p>
-        <h2 className="mt-3 apple-heading text-txt-primary">
-          Everything you need. Nothing you don't.
-        </h2>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {featureCards.map((feature) => (
-          <FeatureCard key={feature.title} {...feature} />
-        ))}
-      </div>
-    </section>
-  );
+function PreviewList({ title, rows }: { title: string; rows: string[][] }) {
+  return <section className="rounded-xl border border-line/70 bg-surface p-4"><h3 className="text-xs font-semibold text-txt-primary">{title}</h3><div className="mt-2">{rows.map(([name, meta, value]) => <div key={name} className="flex items-center justify-between gap-2 border-b border-line/40 py-2.5 last:border-0"><div className="min-w-0"><p className="truncate text-[10px] font-semibold text-txt-primary">{name}</p><p className="truncate text-[8px] text-txt-muted">{meta}</p></div><span className="shrink-0 text-[9px] font-medium text-txt-secondary">{value}</span></div>)}</div></section>;
 }
 
-/* ─────────────────────────────────────────────
-   Tech Stack Ribbon
-   ───────────────────────────────────────────── */
-
-function TechStack() {
-  const tech = [
-    "Next.js 15",
-    "TypeScript",
-    "React 19",
-    "Prisma",
-    "PostgreSQL",
-    "Redis",
-    "PDFKit",
-    "Tailwind v4",
-  ];
-
-  return (
-    <section className="mx-auto max-w-5xl px-6 py-16 border-t border-line/60">
-      <p className="apple-label-caps text-[10px] text-center mb-8">
-        Built with
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        {tech.map((name) => (
-          <span
-            key={name}
-            className="inline-flex items-center px-3.5 py-1.5 rounded-lg border border-line/60 bg-surface/60 text-xs font-medium text-txt-secondary font-sans shadow-2xs"
-          >
-            {name}
-          </span>
-        ))}
-      </div>
-    </section>
-  );
+function PreviewInvoices() {
+  return <section className="rounded-xl border border-line/70 bg-surface p-4"><h3 className="text-xs font-semibold text-txt-primary">Invoices</h3><div className="mt-2">{previewInvoices.map(([name, meta, amount, status]) => <div key={name} className="flex items-center justify-between gap-2 border-b border-line/40 py-2.5 last:border-0"><div className="min-w-0"><p className="truncate text-[10px] font-semibold text-txt-primary">{name}</p><p className="truncate text-[8px] text-txt-muted">{meta}</p></div><div className="flex shrink-0 items-center gap-2"><span className="text-[9px] font-semibold text-txt-primary">{amount}</span><span className={`rounded-md px-1.5 py-0.5 text-[8px] font-medium ${status === "Paid" ? "bg-status-paid-bg text-status-paid" : "bg-primary/10 text-primary"}`}>{status}</span></div></div>)}</div></section>;
 }
 
-/* ─────────────────────────────────────────────
-   Bottom CTA
-   ───────────────────────────────────────────── */
-
-function BottomCta() {
-  return (
-    <section className="mx-auto max-w-5xl px-6 py-24 border-t border-line/60">
-      <div className="glass-panel p-10 sm:p-14 text-center">
-        <h2 className="apple-heading text-txt-primary mb-4">
-          Your time is worth tracking.
-        </h2>
-        <p className="text-sm text-txt-secondary max-w-md mx-auto mb-8 leading-relaxed">
-          Set up in under a minute. Start logging hours, generating invoices,
-          and getting paid for every minute of work you deliver.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            href="/register"
-            className="inline-flex items-center justify-center h-11 rounded-xl px-6 text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 active-press transition-all shadow-md shadow-primary/20"
-          >
-            Create free account
-            <ChevronRight className="ml-1.5 size-4" aria-hidden="true" />
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center h-11 rounded-xl px-6 text-sm font-medium text-txt-secondary hover:text-txt-primary active-press transition-colors"
-          >
-            Sign in to existing account
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
+function ProofStrip() {
+  return <section className="border-y border-line/60 px-6 py-7"><div className="mx-auto flex max-w-6xl flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><p className="max-w-xs text-sm font-medium leading-6 text-txt-secondary">A calmer way to run the work behind your work.</p><div className="flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-txt-muted"><span className="inline-flex items-center gap-2"><Clock3 className="size-3.5 text-primary" /> Live time tracking</span><span className="inline-flex items-center gap-2"><FileText className="size-3.5 text-primary" /> Clean invoices</span><span className="inline-flex items-center gap-2"><WalletCards className="size-3.5 text-primary" /> No busywork</span></div></div></section>;
 }
 
-/* ─────────────────────────────────────────────
-   Benefits Bar
-   ───────────────────────────────────────────── */
-
-function BenefitsBar() {
-  return (
-    <section className="mx-auto max-w-5xl px-6 py-12 border-t border-line/60">
-      <ul className="flex flex-col justify-center gap-4 text-xs font-medium text-txt-secondary sm:flex-row sm:gap-8">
-        {benefits.map((benefit) => (
-          <li key={benefit} className="flex items-center justify-center gap-2">
-            <Check
-              className="size-4 shrink-0 text-status-paid"
-              aria-hidden="true"
-            />
-            {benefit}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
+function Workflow() {
+  const items = [{ icon: TimerReset, title: "Capture the hours", body: "Start a timer or add a finished session. Every entry stays attached to the right client." }, { icon: FileText, title: "Turn work into invoices", body: "Select unbilled time and create a polished invoice without rebuilding the details." }, { icon: WalletCards, title: "See what is outstanding", body: "Know what is paid, what is open, and which work still needs a nudge." }];
+  return <section className="px-6 py-28 sm:py-36"><div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[0.75fr_1.25fr] lg:gap-24"><Reveal><h2 className="max-w-[9ch] text-balance text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-txt-primary sm:text-5xl">Less admin. More room to do the work.</h2><p className="mt-6 max-w-[34ch] text-sm leading-6 text-txt-secondary">Your workflow should show the business clearly, not create another one to manage.</p></Reveal><div className="grid gap-8 sm:grid-cols-3">{items.map(({ icon: Icon, title, body }, index) => <Reveal key={title} delay={index * 0.08}><article className="border-t border-line pt-5"><Icon className="size-5 text-primary" aria-hidden="true" /><h3 className="mt-12 text-base font-semibold text-txt-primary">{title}</h3><p className="mt-3 text-sm leading-6 text-txt-secondary">{body}</p></article></Reveal>)}</div></div></section>;
 }
 
-/* ─────────────────────────────────────────────
-   Landing Page (Composed)
-   ───────────────────────────────────────────── */
+function Closing() {
+  return <section className="px-6 pb-28 sm:pb-36"><Reveal><div className="mx-auto grid max-w-6xl items-end gap-10 rounded-[2rem] bg-primary p-7 text-primary-foreground shadow-[0_24px_70px_-34px_var(--primary)] sm:p-12 lg:grid-cols-[1fr_auto]"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary-foreground/65">Make the next hour count</p><h2 className="mt-4 max-w-[12ch] text-balance text-4xl font-semibold leading-[1] tracking-[-0.05em] sm:text-5xl">Start with the work you already did.</h2></div><IslandButton href="/register" secondary>Open your workspace</IslandButton></div></Reveal></section>;
+}
 
 export function LandingPage() {
-  return (
-    <main className="min-h-screen bg-canvas text-txt-primary antialiased selection:bg-primary/20">
-      <Hero />
-      <div className="relative mx-auto max-w-6xl">
-        <ProductPreview />
-        <HowItWorks />
-        <Features />
-        <TechStack />
-        <BenefitsBar />
-        <BottomCta />
-      </div>
-    </main>
-  );
+  return <main className="min-h-[100dvh] overflow-hidden bg-canvas text-txt-primary selection:bg-primary/20"><Hero /><ProofStrip /><Workflow /><Closing /></main>;
 }
