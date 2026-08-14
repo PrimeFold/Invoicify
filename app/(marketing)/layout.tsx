@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { SiGithub } from "react-icons/si";
+import { SiGithub, SiInstagram, SiX } from "react-icons/si";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { requireUser } from "@/lib/auth/session";
-import { Brand } from "./landing/landing-page";
+import { Brand, MobileMenu } from "./landing/landing-page";
 
 export default async function MarketLayout({
   children,
@@ -32,34 +32,34 @@ export default async function MarketLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-txt-primary transition-colors duration-200">
-      {/* Shared Header */}
-      <header className="sticky top-0 z-40 glass-header py-3.5 px-6">
-        <div className="max-w-6xl w-full mx-auto flex flex-col sm:flex-row items-center sm:justify-between gap-4">
+      <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-line/70 bg-glass-surface px-4 py-2.5 shadow-[0_12px_32px_-24px_oklch(0_0_0_/_0.7)] backdrop-blur-xl sm:px-5">
           <Brand />
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className="font-sans text-xs font-medium text-txt-secondary hover:text-txt-primary px-3 py-1.5 transition-colors active-press"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="bg-primary text-primary-foreground font-sans font-medium text-xs px-4 py-2 rounded-xl hover:opacity-90 active-press transition-all shadow-xs"
-            >
-              Get Started
-            </Link>
-          </div>
+          <nav aria-label="Primary navigation" className="flex items-center gap-1.5">
+            <div className="hidden items-center gap-1.5 lg:flex">
+              <ThemeToggle />
+              <Link href="/#why" className="rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary">Why I built it</Link>
+              <Link href="/#features" className="rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary">Features</Link>
+              <Link href="/login" className="active-press rounded-full px-3 py-2 text-xs font-medium text-txt-secondary transition-colors hover:text-txt-primary">Sign in</Link>
+              <Link href="/register" className="active-press rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Start tracking</Link>
+            </div>
+            <MobileMenu />
+          </nav>
         </div>
       </header>
       <div className="flex-1">{children}</div>
-      <footer className="border-t border-line/60 py-8 px-6">
-        <div className="max-w-6xl w-full mx-auto text-xs font-sans text-txt-muted flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p>Invoicify — Time tracking and invoicing for freelancers</p>
-          <p className="inline-flex items-center gap-2">
-            Open Source <SiGithub className="size-3.5" />
-          </p>
+      <footer className="border-t border-line/60 px-6 py-10">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 text-xs text-txt-muted sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p>Invoicify. Time tracking and invoicing for freelancers.</p>
+            <p className="mt-2 max-w-sm leading-5">Built because I wanted fewer spreadsheets, fewer late nights, and a clearer view of the work already done.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <a href="https://github.com/PrimeFold/Invoicify" className="inline-flex items-center gap-2 transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary" rel="noreferrer">GitHub <SiGithub className="size-3.5" aria-hidden="true" /></a>
+            <a href="https://instagram.com" className="transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary" rel="noreferrer" aria-label="Instagram"><SiInstagram className="size-4" aria-hidden="true" /></a>
+            <a href="https://x.com" className="transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary" rel="noreferrer" aria-label="X"><SiX className="size-4" aria-hidden="true" /></a>
+            <a href="https://linkedin.com" className="transition-colors duration-200 [transition-timing-function:var(--ease-apple-snappy)] hover:text-txt-primary" rel="noreferrer" aria-label="LinkedIn"><span className="text-xs font-semibold" aria-hidden="true">in</span></a>
+          </div>
         </div>
       </footer>
     </div>
