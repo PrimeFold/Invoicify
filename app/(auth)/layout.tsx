@@ -1,23 +1,20 @@
-import { ReceiptText } from "lucide-react";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-canvas px-4">
-      <div className="mb-6 flex flex-col items-center gap-2">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-mono text-base font-semibold text-txt-primary"
-        >
-          <span className="grid size-9 place-items-center rounded-md bg-surface border border-line text-txt-primary">
-            <ReceiptText className="size-5" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-canvas px-4 py-12">
+      <div className="mb-6 flex flex-col items-center">
+        <Link href="/" className="group flex items-center gap-3 transition-transform duration-200 hover:scale-105">
+          <span className="grid size-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
+            <FileText className="size-6" />
           </span>
-          Invoicify
+          <span className="font-bold text-2xl tracking-tight text-txt-primary">Invoicify</span>
         </Link>
       </div>
 
-      <div className="w-full max-w-md bg-surface border border-line rounded-lg p-6 shadow-2xl">
+      <div className="w-full max-w-md">
         {children}
       </div>
     </div>

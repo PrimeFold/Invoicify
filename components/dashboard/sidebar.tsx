@@ -4,6 +4,7 @@ import { useState } from "react";
 import { UserDetails } from "@/types/user";
 import {
   Clock3,
+  FileText,
   HelpCircle,
   Menu,
   LayoutDashboard,
@@ -88,7 +89,12 @@ export default function Sidebar({ user }: { user?: UserDetails }) {
   return (
     <>
       <div className="flex items-center justify-between border-b border-line/60 px-4 py-3 md:hidden">
-        <span className="text-xs font-semibold text-txt-secondary">Workspace</span>
+        <div className="flex items-center gap-2">
+          <span className="grid size-6 place-items-center rounded-md bg-primary text-primary-foreground">
+            <FileText className="size-3.5" />
+          </span>
+          <span className="text-xs font-semibold text-txt-secondary">Workspace</span>
+        </div>
         <button type="button" aria-expanded={showPromo} aria-label="Open workspace navigation" onClick={() => setShowPromo((value) => !value)} className="active-press grid size-9 place-items-center rounded-xl border border-line bg-surface text-txt-primary">
           <Menu className="size-4" aria-hidden="true" />
         </button>
@@ -97,6 +103,15 @@ export default function Sidebar({ user }: { user?: UserDetails }) {
       <div className="sticky top-0 flex min-h-0 flex-col justify-between p-4 md:h-[calc(100dvh-4rem)]">
         {/* Navigation Links */}
         <div className="space-y-5 pt-1">
+          <div className="hidden md:flex items-center gap-2.5 px-3 py-1">
+            <span className="grid size-7 place-items-center rounded-lg bg-primary text-primary-foreground shadow-xs">
+              <FileText className="size-4" />
+            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-xs text-txt-primary tracking-tight">Workspace</span>
+              <span className="text-[10px] text-txt-muted">Invoicify Dev</span>
+            </div>
+          </div>
           <nav className="space-y-5">
             {sections.map((section) => (
               <div key={section.title}>

@@ -15,7 +15,6 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { SiGithub } from "react-icons/si";
@@ -25,13 +24,9 @@ const githubUrl = "https://github.com/PrimeFold/Invoicify";
 export function Brand() {
   return (
     <Link href="/" className="group flex items-center gap-2.5 text-sm font-semibold tracking-tight text-txt-primary">
-      <Image
-        src="/invoicify-purple-logo-set/invoicify-app-icon.svg"
-        alt="Invoicify logo"
-        width={32}
-        height={32}
-        className="size-8 rounded-xl shadow-[0_8px_24px_-12px_var(--primary)] transition-transform duration-200 [transition-timing-function:var(--ease-apple-snappy)] group-hover:scale-105"
-      />
+      <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_8px_24px_-12px_var(--primary)] transition-transform duration-200 [transition-timing-function:var(--ease-apple-snappy)] group-hover:scale-105">
+        <FileText className="size-4" aria-hidden="true" />
+      </span>
       <span>Invoicify</span>
     </Link>
   );

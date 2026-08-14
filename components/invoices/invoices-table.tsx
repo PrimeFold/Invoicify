@@ -127,12 +127,19 @@ export function InvoicesTable({ invoices }: { invoices: InvoiceTableRow[] }) {
             ) : (
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center font-sans">
-                  <p className="text-sm font-medium text-txt-primary">
-                    No invoice history
-                  </p>
-                  <p className="mt-1 text-xs text-txt-muted">
-                    Generate an invoice for a client to start populating your billing history.
-                  </p>
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="grid size-12 place-items-center rounded-2xl border border-line/60 bg-surface text-txt-muted shadow-xs">
+                      <ReceiptText className="size-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-txt-primary">
+                        No invoice history
+                      </p>
+                      <p className="mt-1 text-xs text-txt-muted">
+                        Generate an invoice for a client to start populating your billing history.
+                      </p>
+                    </div>
+                  </div>
                 </td>
               </tr>
             )}

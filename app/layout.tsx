@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   description:
     "Track billable work and create polished invoices with Invoicify.",
   icons: {
-    icon: "/invoicify-purple-logo-set/invoicify-favicon.svg",
-    shortcut: "/invoicify-purple-logo-set/invoicify-app-icon.svg",
-    apple: "/invoicify-purple-logo-set/invoicify-app-icon.svg",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
 };
 

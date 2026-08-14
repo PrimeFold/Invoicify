@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 import {
   Card,
@@ -25,15 +25,11 @@ export function AuthCard({
   return (
     <Card className="w-full max-w-md border border-line bg-surface shadow-2xl">
       <CardHeader className="space-y-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center">
           <Link href="/" className="group flex items-center gap-2.5">
-            <Image
-              src="/invoicify-purple-logo-set/invoicify-app-icon.svg"
-              alt="Invoicify logo"
-              width={36}
-              height={36}
-              className="size-9 rounded-xl shadow-md transition-transform duration-200 group-hover:scale-105"
-            />
+            <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-md transition-transform duration-200 group-hover:scale-105">
+              <FileText className="size-5" />
+            </span>
             <span className="font-bold text-xl text-txt-primary tracking-tight">Invoicify</span>
           </Link>
         </div>
