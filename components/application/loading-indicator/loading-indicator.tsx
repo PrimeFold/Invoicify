@@ -115,7 +115,7 @@ export const LoadingIndicator = ({ type = "line-simple", size = "sm", label }: L
     };
 
     return (
-        <div className={cx("flex flex-col items-center justify-center w-full min-h-[50vh]", styles[size].root)}>
+        <div className={cx("flex flex-col items-center justify-center w-full h-full flex-1 min-h-[50vh]", styles[size].root)}>
             {renderSpinner()}
             {label && <span className={cx("text-secondary", styles[size].label)}>{label}</span>}
         </div>
