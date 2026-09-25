@@ -342,7 +342,7 @@ const GradientWaves: React.FC<GradientWavesProps> = ({
     const ctx = ctxMap.get(container);
     if (!ctx) return;
     const { program } = ctx;
-    const u = program.uniforms as Record<string, { value: number | boolean | number[] }>;
+    const u = program.uniforms as Record<string, { value: number | boolean | Float32Array }>;
 
     enableMouseRef.current = mouseInteraction;
 
