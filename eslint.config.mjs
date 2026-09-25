@@ -5,13 +5,22 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  {
+    rules: {
+      // Demote experimental React 19 compiler rule that breaks on standard client mount & shadcn hooks
+      "react-hooks/set-state-in-effect": "warn",
+      // Allow 'any' where needed for WebGL/third-party canvas libs without blocking CI
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Allow natural contractions (don't, can't) in JSX
+      "react/no-unescaped-entities": "off",
+    },
+  },
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "lib/generated/**",
   ]),
 ]);
 

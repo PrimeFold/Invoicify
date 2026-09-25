@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   User,
@@ -49,7 +49,6 @@ export default function SettingsPage() {
   const cachedProfile = getCachedData<UserProfileData>(SETTINGS_CACHE_KEY);
   const [profile, setProfile] = useState<UserProfileData | null>(cachedProfile);
   const [isLoading, setIsLoading] = useState(!cachedProfile);
-  const [isPending, startTransition] = useTransition();
 
   // Form states
   const [name, setName] = useState(cachedProfile?.name || "");
@@ -97,7 +96,7 @@ export default function SettingsPage() {
 
     setSavingName(true);
     updateProfileName(name)
-      .then((res) => {
+      .then(() => {
         invalidateClientCache();
         toast.success({
           title: "Username updated",
@@ -122,7 +121,7 @@ export default function SettingsPage() {
 
     setSavingEmail(true);
     updateProfileEmail(email)
-      .then((res) => {
+      .then(() => {
         invalidateClientCache();
         toast.success({
           title: "Email updated",

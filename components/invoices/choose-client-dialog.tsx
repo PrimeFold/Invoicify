@@ -131,7 +131,7 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
               <p className="font-sans text-sm font-semibold text-txt-primary">No clients yet</p>
 
               <p className="mt-1 max-w-xs font-sans text-xs text-txt-muted">
-                Add a client first, then you'll be able to create invoices for
+                Add a client first, then you&apos;ll be able to create invoices for
                 their work.
               </p>
             </div>
@@ -180,7 +180,7 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
                 </p>
 
                 <p className="mt-1 max-w-xs font-sans text-xs text-txt-muted">
-                  This client doesn't have any unbilled time logs yet.
+                  This client doesn&apos;t have any unbilled time logs yet.
                 </p>
 
                 <Button
@@ -237,7 +237,7 @@ export function ChooseClientDialog({ clients }: ChooseClientDialogProps) {
 
                 <div className="rounded-xl border border-line/60 bg-canvas/40 px-3.5 py-3">
                   <p className="font-sans text-xs text-txt-muted">
-                    We'll only show time logs that haven't already been billed
+                    We&apos;ll only show time logs that haven&apos;t already been billed
                     to this client.
                   </p>
                 </div>
